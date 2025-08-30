@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple Web Scraper</title>
+    <link rel="stylesheet" href="sidebar.css" />
+  </head>
+  <!-- Hidden file input for schema import -->
+  <input type="file" id="schema-import-input" accept=".json" />
+
+  <!-- Import options dialog -->
+  <div id="import-options-dialog" class="modal hidden">
+    <div class="modal-content">
+      <h3>Import Options</h3>
+      <p>How would you like to handle duplicate schemas?</p>
+      <div class="import-options">
+        <label>
+          <input type="radio" name="import-option" value="skip" checked />
+          Skip duplicates (keep existing)
+        </label>
+        <label>
+          <input type="radio" name="import-option" value="replace" />
+          Replace existing with imported
+        </label>
+        <label>
+          <input type="radio" name="import-option" value="keep-both" />
+          Keep both (assign new IDs to imports)
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button id="import-cancel" class="secondary-button">Cancel</button>
+        <button id="import-confirm" class="primary-button">Import</button>
+      </div>
+    </div>
+  </div>
+  <body>
+    <div class="sidebar-container">
+      <header class="sidebar-header">
+        <h1>Simple Web Scraper</h1>
+        <div style="display: flex; align-items: center">
+          <div id="theme-toggle" class="theme-toggle" title="Toggle Dark Mode">
+            <span id="theme-icon">🌙</span>
+          </div>
+          <button id="minimize-sidebar" class="icon-button" title="Hide Sidebar">&#8722;</button>
+          <button id="delete-sidebar" class="icon-button" title="Remove Sidebar">&times;</button>
+        </div>
+      </header>
+
+      <div class="sidebar-content">
+        <div class="schemas-section">
+          <div class="section-header">
+            <h2>Schemas</h2>
+            <div class="schema-actions">
+              <button id="import-schemas" class="secondary-button" title="Import Schemas">Import</button>
+              <button id="export-schemas" class="secondary-button" title="Export Schemas">Export</button>
+              <button id="add-schema" class="primary-button">Add Schema</button>
+            </div>
+          </div>
+
+          <!-- Search and sort controls for schemas -->
+          <div class="form-group schemas-controls">
+            <input
+              type="text"
+              id="schema-search"
+              placeholder="Search schemas by name or description..."
+              aria-label="Search schemas"
+            />
+            <select id="schema-sort" aria-label="Sort schemas">
+              <option value="name:asc">Name (A–Z)</option>
+              <option value="name:desc">Name (Z–A)</option>
+              <option value="created_at:desc">Created (Newest)</option>
+              <option value="created_at:asc">Created (Oldest)</option>
+              <option value="updated_at:desc">Updated (Newest)</option>
+              <option value="updated_at:asc">Updated (Oldest)</option>
+            </select>
+          </div>
+
+          <div id="schemas-list" class="schemas-list">
+            <!-- Schema cards will be dynamically inserted here -->
+            <div class="empty-state" id="empty-schemas">
+              <p>No schemas yet. Create your first schema to start scraping.</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="schema-form-container" class="schema-form-container hidden">
+          <div class="section-header">
+            <h2 id="schema-form-title">Create Schema</h2>
+            <button id="cancel-schema-form" class="secondary-button">Cancel</button>
+          </div>
+
+          <form id="schema-form">
+            <div class="form-group">
+              <label for="schema-name">Schema Name</label>
+              <input type="text" id="schema-name" name="schema-name" required placeholder="e.g. Product List" />
+            </div>
+
+            <div class="form-group">
+              <label for="schema-description">Description (optional)</label>
+              <textarea id="schema-description" name="schema-description" rows="2" placeholder="Describe what this schema scrapes (optional)"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="parent-selector">Parent Selector</label>
+              <div class="selector-input-group">
+                <input type="text" id="parent-selector" name="parent-selector" required placeholder="e.g. .products-list" />
+                <button type="button" class="selector-picker-button" data-index="parent-selector" title="Pick parent element from page">
+                  <span class="selector-icon">🔍</span>
+                </button>
+              </div>
+              <small class="help-text">Select the parent container that holds all cards</small>
+            </div>
+
+            <div class="form-group">
+              <label for="card-selector">Card Selector</label>
+              <div class="selector-input-group">
+                <input type="text" id="card-selector" name="card-selector" required placeholder="e.g. .product-card" />
+                <button type="button" class="selector-picker-button" data-index="card-selector" title="Pick card element from page">
+                  <span class="selector-icon">🔍</span>
+                </button>
+              </div>
+              <small class="help-text">Select the container element that holds each item to be scraped</small>
+            </div>
+
+            <div class="form-group">
+              <label for="next-button-selector">Next Page Button Selector</label>
+              <div class="selector-input-group">
+                <input type="text" id="next-button-selector" name="next-button-selector" placeholder="e.g. .pagination .next" />
+                <button type="button" class="selector-picker-button" data-index="next-button-selector" title="Pick next page button from page">
+                  <span class="selector-icon">🔍</span>
+                </button>
+              </div>
+              <small class="help-text">Optional. Provide a selector for the button/link that moves to the next page.</small>
+            </div>
+
+            <div class="form-group">
+              <label for="next-delay-ms">Delay before next page (ms)</label>
+              <input type="number" min="0" step="100" id="next-delay-ms" name="next-delay-ms" placeholder="e.g. 1000" />
+              <small class="help-text">Time to wait after clicking Next before scraping the next page.</small>
+            </div>
+
+            <div class="form-group">
+              <label for="max-pages">Number of pages</label>
+              <input type="number" min="1" step="1" id="max-pages" name="max-pages" placeholder="e.g. 5" />
+              <small class="help-text">How many pages to scrape. Leave empty to scrape only the current page.</small>
+            </div>
+
+            <div class="columns-section">
+              <h3>Columns</h3>
+
+              <div id="columns-container">
+                <!-- Column form fields will be dynamically inserted here -->
+              </div>
+
+              <button type="button" id="add-column" class="secondary-button">Add Column</button>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="primary-button">Save Schema</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="results-container" class="results-container hidden">
+          <div class="section-header">
+            <h2>Scraping Results</h2>
+            <div>
+              <div class="export-dropdown pages-dropdown">
+                <button id="pages-button" class="secondary-button">Pages <span class="dropdown-arrow">▼</span></button>
+                <div id="pages-options" class="export-options">
+                  <!-- Page checkboxes will be dynamically inserted here -->
+                  <button id="select-all-pages" class="export-option" type="button">Select All</button>
+                  <!-- Page options rendered below -->
+                </div>
+              </div>
+              <div class="export-dropdown">
+                <button id="export-button" class="secondary-button">Export <span class="dropdown-arrow">▼</span></button>
+                <div id="export-options" class="export-options">
+                  <button id="export-results" class="export-option">CSV</button>
+                  <button id="export-json" class="export-option">JSON</button>
+                </div>
+              </div>
+              <button id="back-to-schemas" class="secondary-button">Back</button>
+            </div>
+          </div>
+
+          <div id="results-table-container" class="results-table-container">
+            <!-- Results table will be dynamically inserted here -->
+          </div>
+          
+        </div>
+      </div>
+    </div>
+
+    <!-- Templates -->
+    <template id="schema-card-template">
+      <div class="schema-card" data-schema-id="">
+        <div class="schema-card-header">
+          <h3 class="schema-name"></h3>
+          <div class="schema-actions">
+            <button class="icon-button edit-schema" title="Edit Schema">✏️</button>
+            <button class="icon-button delete-schema" title="Delete Schema">🗑️</button>
+          </div>
+        </div>
+        <p class="schema-description"></p>
+        <div class="schema-columns"><strong>Columns:</strong> <span class="columns-count"></span></div>
+        <button class="primary-button start-scraping">Start Scraping</button>
+      </div>
+    </template>
+
+    <template id="column-form-template">
+      <div class="column-form-row">
+        <div class="column-form-fields">
+          <div class="form-group">
+            <label for="column-name-{index}">Name</label>
+            <input type="text" class="column-name" id="column-name-{index}" name="column-name-{index}" required placeholder="e.g. Title" />
+          </div>
+
+          <div class="form-group">
+            <label for="column-selector-{index}">CSS Selector</label>
+            <div class="selector-input-group">
+              <input type="text" class="column-selector" id="column-selector-{index}" name="column-selector-{index}" required placeholder="e.g. .title" />
+              <button type="button" class="selector-picker-button" data-index="{index}" title="Pick element from page">
+                <span class="selector-icon">🔍</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="column-type-{index}">Type</label>
+            <select class="column-type" id="column-type-{index}" name="column-type-{index}">
+              <option value="text">Text</option>
+              <option value="html">HTML</option>
+              <option value="attribute">Attribute</option>
+              <option value="href">Href</option>
+              <option value="src">Src</option>
+              <option value="style">Style</option>
+            </select>
+          </div>
+
+          <div class="form-group attribute-name-group hidden">
+            <label for="column-attribute-{index}">Attribute Name</label>
+            <input type="text" class="column-attribute" id="column-attribute-{index}" name="column-attribute-{index}" placeholder="e.g. data-id" />
+          </div>
+          
+          <div class="form-group style-property-group hidden">
+            <label for="column-style-property-{index}">Style Property</label>
+            <input type="text" class="column-style-property" id="column-style-property-{index}" name="column-style-property-{index}" placeholder="e.g. background-image" />
+          </div>
+          
+          <div class="form-group regexp-pattern-group hidden">
+            <label for="column-regexp-pattern-{index}">RegExp Pattern</label>
+            <input type="text" class="column-regexp-pattern" id="column-regexp-pattern-{index}" name="column-regexp-pattern-{index}" placeholder="e.g. /url\(\"([^\"]+)\"\)/ or price: (\d+\.\d+)" />
+          </div>
+
+          <div class="form-group">
+            <label for="column-multiple-{index}" class="checkbox-label">
+              <input type="checkbox" class="column-multiple" id="column-multiple-{index}" name="column-multiple-{index}" />
+              Multiple Elements
+            </label>
+          </div>
+          
+          <div class="form-group">
+            <label for="column-use-regexp-{index}" class="checkbox-label">
+              <input type="checkbox" class="column-use-regexp" id="column-use-regexp-{index}" name="column-use-regexp-{index}" />
+              Use RegExp
+            </label>
+            <div class="help-text">Use parentheses () to capture specific parts of the text. The first captured group will be extracted.</div>
+          </div>
+        </div>
+
+        <div class="column-actions">
+          <button type="button" class="icon-button move-column-up" title="Move Up">⬆️</button>
+          <button type="button" class="icon-button move-column-down" title="Move Down">⬇️</button>
+          <button type="button" class="icon-button delete-column" title="Delete Column">🗑️</button>
+        </div>
+      </div>
+    </template>
+
+    <!-- JavaScript Modules -->
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>
