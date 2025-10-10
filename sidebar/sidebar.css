@@ -369,13 +369,21 @@ button:disabled:hover,
 }
 
 /* Schema metadata (created/updated) */
+.schema-footer {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
 .schema-meta {
   display: flex;
-  gap: 12px;
+  flex-wrap: wrap;
+  /* gap: 5px; */
   align-items: center;
   color: var(--text-secondary);
   font-size: 12px;
-  margin-bottom: 12px;
 }
 
 /* Column name chips */
@@ -389,7 +397,7 @@ button:disabled:hover,
   display: inline-block;
   padding: 2px 8px;
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 6px;
   background-color: var(--bg-tertiary);
   color: var(--text-primary);
   font-size: 12px;
