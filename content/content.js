@@ -541,89 +541,78 @@ function escapeCssSelector(str) {
  * @returns {string} - The generated CSS selector
  */
 function generateSelector(element) {
-  // Start with the element's tag name
+  // Start with tag name
   let selector = element.tagName.toLowerCase();
 
-  // Add id if available (most specific)
+  // Include id (do not early return) for a complete selector
   if (element.id) {
-    return `#${escapeCssSelector(element.id)}`;
+    selector += `#${escapeCssSelector(element.id)}`;
   }
 
-  // Add all classes if available for more specificity
+  // Include all valid classes
   if (element.className && typeof element.className === "string") {
-    const classes = element.className.trim().split(/\s+/);
-    if (classes.length > 0 && classes[0] !== "") {
-      // Add classes that are valid CSS identifiers
-      const validClasses = classes.filter(isValidCssClassName);
-
-      if (validClasses.length > 0) {
-        selector += "." + validClasses.join(".");
-      }
+    const classes = element.className.trim().split(/\s+/).filter(Boolean);
+    const validClasses = classes.filter(isValidCssClassName);
+    if (validClasses.length > 0) {
+      selector += "." + validClasses.join(".");
     }
   }
 
-  // Add key attributes that help identify elements
-  const keyAttributes = ["data-container", "data-id", "data-type", "data-role", "role", "name", "type"];
-  keyAttributes.forEach((attr) => {
-    if (element.hasAttribute(attr)) {
-      const value = element.getAttribute(attr);
-      // Escape attribute value to handle special characters
-      selector += `[${attr}="${escapeCssSelector(value)}"]`;
+  // Include all non-empty attributes except id/class/style for completeness
+  if (element.attributes && element.attributes.length > 0) {
+    for (const attr of Array.from(element.attributes)) {
+      const name = attr.name;
+      const value = attr.value;
+      if (!name || name === "id" || name === "class" || name === "style") continue;
+      if (value == null || String(value).length === 0) continue;
+      selector += `[${name}='${escapeCssSelector(String(value))}']`;
     }
-  });
+  }
 
-  // Check if the selector is unique in the document
+  // Append positional pseudo-classes relative to parent (CSS standard ones)
+  if (element.parentElement) {
+    const siblings = Array.from(element.parentElement.children);
+    const index = siblings.indexOf(element);
+    if (index !== -1) {
+      selector += `:nth-child(${index + 1})`;
+      if (index === 0) selector += `:first-child`;
+      if (index === siblings.length - 1) selector += `:last-child`;
+    }
+  }
+
+  // Check if the selector is valid and unique
   try {
     const matchingElements = document.querySelectorAll(selector);
-    if (matchingElements.length === 1) {
+    if (matchingElements.length === 1 && matchingElements[0] === element) {
       return selector;
     }
   } catch (error) {
     console.error("Invalid selector generated:", selector, error);
-    // Fallback to simpler selector if there's an error
+    // Fallback to tag + first valid class
     selector = element.tagName.toLowerCase();
     if (element.className && typeof element.className === "string") {
       const classes = element.className.trim().split(/\s+/);
-      // Find the first valid class name
       const validClass = classes.find(isValidCssClassName);
-      if (validClass) {
-        selector += "." + validClass;
-      }
+      if (validClass) selector += "." + validClass;
     }
-
-    // Validate the fallback selector
     try {
       document.querySelector(selector);
     } catch (fallbackError) {
       console.error("Invalid fallback selector:", selector, fallbackError);
-      // If even the fallback fails, just use the tag name
       selector = element.tagName.toLowerCase();
     }
   }
 
-  // If not unique, build a more specific path
-  // First try with direct parent for a cleaner selector
+  // If not unique, try to scope with direct parent
   if (element.parentElement) {
     const parent = element.parentElement;
     let parentSelector = parent.tagName.toLowerCase();
-
-    // Add parent id if available
     if (parent.id) {
       parentSelector = `#${escapeCssSelector(parent.id)}`;
     } else if (parent.className && typeof parent.className === "string") {
-      // Add parent classes
-      const parentClasses = parent.className.trim().split(/\s+/);
-      if (parentClasses.length > 0 && parentClasses[0] !== "") {
-        // Filter invalid class names
-        const validParentClasses = parentClasses.filter(isValidCssClassName);
-
-        if (validParentClasses.length > 0) {
-          parentSelector += "." + validParentClasses.join(".");
-        }
-      }
+      const parentClasses = parent.className.trim().split(/\s+/).filter(isValidCssClassName);
+      if (parentClasses.length > 0) parentSelector += "." + parentClasses.join(".");
     }
-
-    // Check if parent > element selector is unique
     const combinedSelector = `${parentSelector} > ${selector}`;
     try {
       const matchingElements = document.querySelectorAll(combinedSelector);
@@ -632,99 +621,48 @@ function generateSelector(element) {
       }
     } catch (error) {
       console.error("Invalid combined selector:", combinedSelector, error);
-      // Don't return invalid selectors, continue to next strategy
     }
   }
 
-  // If still not unique, try with nth-child for precise targeting
-  if (element.parentElement) {
-    const siblings = Array.from(element.parentElement.children);
-    const index = siblings.indexOf(element);
-    if (index !== -1) {
-      // Try a simpler nth-child selector first (more compatible)
-      const nthSelector = `${element.tagName.toLowerCase()}:nth-child(${index + 1})`;
-      try {
-        const elements = document.querySelectorAll(`${element.parentElement.tagName.toLowerCase()} > ${nthSelector}`);
-        if (elements.length === 1 && elements[0] === element) {
-          return `${element.parentElement.tagName.toLowerCase()} > ${nthSelector}`;
-        }
-      } catch (error) {
-        console.error("Invalid nth-child selector:", nthSelector, error);
-      }
-
-      // Try with the original selector if the simple one didn't work
-      if (selector !== element.tagName.toLowerCase()) {
-        const fullNthSelector = `${selector}:nth-child(${index + 1})`;
-        try {
-          const elements = document.querySelectorAll(fullNthSelector);
-          if (elements.length === 1 && elements[0] === element) {
-            return fullNthSelector;
-          }
-        } catch (error) {
-          console.error("Invalid full nth-child selector:", fullNthSelector, error);
-        }
-      }
-    }
-  }
-
-  // If still not unique, build a full path (up to 3 levels)
+  // Build a short full path (up to 3 levels)
   let currentElement = element;
   let fullPathSelector = selector;
   let levels = 0;
-
   while (currentElement.parentElement && levels < 3) {
     currentElement = currentElement.parentElement;
     let parentTag = currentElement.tagName.toLowerCase();
-
-    // Add parent id if available
     if (currentElement.id) {
       fullPathSelector = `#${escapeCssSelector(currentElement.id)} > ${fullPathSelector}`;
       break;
     }
-
-    // Add parent classes for more specificity
     if (currentElement.className && typeof currentElement.className === "string") {
-      const parentClasses = currentElement.className.trim().split(/\s+/);
-      if (parentClasses.length > 0 && parentClasses[0] !== "") {
-        // Filter invalid class names
-        const validParentClasses = parentClasses.filter(isValidCssClassName);
-
-        if (validParentClasses.length > 0) {
-          parentTag += "." + validParentClasses.join(".");
-        }
-      }
+      const parentClasses = currentElement.className.trim().split(/\s+/).filter(isValidCssClassName);
+      if (parentClasses.length > 0) parentTag += "." + parentClasses.join(".");
     }
-
     fullPathSelector = `${parentTag} > ${fullPathSelector}`;
     levels++;
   }
 
-  // Try to validate the full path selector
   try {
     document.querySelector(fullPathSelector);
     return fullPathSelector;
   } catch (error) {
     console.error("Invalid full path selector:", fullPathSelector, error);
-
-    // Final fallback: use a position-based selector as last resort
-    // This is not ideal for dynamic content but better than nothing
+    // Last resort: purely positional under parent
     try {
       if (element.parentElement) {
         const parent = element.parentElement;
         const parentTag = parent.tagName.toLowerCase();
         const index = Array.from(parent.children).indexOf(element);
-
         if (index !== -1) {
           const positionSelector = `${parentTag} > *:nth-child(${index + 1})`;
-          document.querySelector(positionSelector); // Validate it works
+          document.querySelector(positionSelector);
           return positionSelector;
         }
       }
     } catch (finalError) {
       console.error("Failed to create any valid selector", finalError);
     }
-
-    // Absolute last resort: just return the tag name
     return element.tagName.toLowerCase();
   }
 }
