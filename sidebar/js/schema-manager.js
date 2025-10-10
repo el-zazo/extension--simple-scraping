@@ -5,14 +5,13 @@ import * as ui from './ui.js';
 
 // Constants
 const SCHEMA_FILE_NAME = 'simple-scraper-schemas.json';
-
 // State variables
 let schemas = [];
 let currentSchemaId = null;
 let editMode = false;
 let schemaFilter = '';
-let sortField = 'name';
-let sortDir = 'asc'; // 'asc' | 'desc'
+let sortField = 'created_at';
+let sortDir = 'desc'; // 'asc' | 'desc'
 
 /**
  * Initialize schema manager
@@ -29,7 +28,7 @@ export function init(callback) {
 
 /**
  * Get all schemas
- * @returns {Array} Array of schema objects
+ * @returns {Array}
  */
 export function getSchemas() {
   return schemas;
@@ -37,11 +36,11 @@ export function getSchemas() {
 
 /**
  * Get a schema by ID
- * @param {string} schemaId - ID of the schema to get
- * @returns {Object|null} Schema object or null if not found
+ * @param {string} schemaId
+ * @returns {Object|null}
  */
 export function getSchemaById(schemaId) {
-  return schemas.find(s => s.id === schemaId) || null;
+  return schemas.find((s) => s.id === schemaId) || null;
 }
 
 /**
@@ -52,19 +51,16 @@ export function renderSchemas() {
     editSchema,
     deleteSchema,
     startScraping,
-    stopScraping
+    stopScraping,
   };
   const filtered = applyFilter(schemas, schemaFilter);
   const sorted = applySort(filtered, sortField, sortDir);
-  const emptyMessage = (schemas.length > 0 && filtered.length === 0)
-    ? 'No matching schemas'
-    : undefined;
+  const emptyMessage = schemas.length > 0 && filtered.length === 0 ? 'No matching schemas' : undefined;
   ui.renderSchemasList(sorted, handlers, emptyMessage);
 }
 
 /**
  * Set schema search filter and re-render
- * @param {string} term
  */
 export function setSchemaFilter(term) {
   schemaFilter = (term || '').trim().toLowerCase();
@@ -84,10 +80,7 @@ export function setSchemaSort(option) {
 }
 
 /**
- * Apply filter to schemas by name/description
- * @param {Array} list
- * @param {string} term
- * @returns {Array}
+ * Apply filter by name/description
  */
 function applyFilter(list, term) {
   if (!term) return list;
@@ -100,10 +93,6 @@ function applyFilter(list, term) {
 
 /**
  * Apply sort by field and direction
- * @param {Array} list
- * @param {string} field 'name' | 'created_at' | 'updated_at'
- * @param {string} dir 'asc' | 'desc'
- * @returns {Array}
  */
 function applySort(list, field, dir) {
   const factor = dir === 'desc' ? -1 : 1;
@@ -118,7 +107,7 @@ function compareSchemas(a, b, field) {
     case 'updated_at': {
       const av = Number(a[field] || 0);
       const bv = Number(b[field] || 0);
-      return av === bv ? 0 : (av < bv ? -1 : 1);
+      return av === bv ? 0 : av < bv ? -1 : 1;
     }
     case 'name':
     default: {
@@ -137,8 +126,11 @@ export function showSchemaForm() {
   // Reset edit mode and current schema ID
   editMode = false;
   currentSchemaId = null;
-  
+
   ui.showSchemaForm(addColumnToForm);
+  // Ensure inner form container is visible in case it was hidden by results view
+  const formContainer = document.getElementById('schema-form-container');
+  if (formContainer) formContainer.classList.remove('hidden');
 }
 
 /**
@@ -152,7 +144,6 @@ export function hideSchemaForm() {
 
 /**
  * Add a column to the form
- * @param {Object} column - Optional column object for editing
  */
 export function addColumnToForm(column = {}) {
   ui.addColumnToForm(column);
@@ -163,11 +154,10 @@ export function addColumnToForm(column = {}) {
  */
 export function saveSchemaForm() {
   const formData = ui.getSchemaFormData();
-  
-  // Create or update schema
+
   if (editMode && currentSchemaId) {
     // Update existing schema
-    const schemaIndex = schemas.findIndex(s => s.id === currentSchemaId);
+    const schemaIndex = schemas.findIndex((s) => s.id === currentSchemaId);
     if (schemaIndex !== -1) {
       schemas[schemaIndex] = {
         ...schemas[schemaIndex],
@@ -179,7 +169,7 @@ export function saveSchemaForm() {
         nextDelayMs: formData.nextDelayMs,
         maxPages: formData.maxPages,
         columns: formData.columns,
-        updated_at: Date.now()
+        updated_at: Date.now(),
       };
     }
   } else {
@@ -195,16 +185,12 @@ export function saveSchemaForm() {
       maxPages: formData.maxPages,
       columns: formData.columns,
       created_at: Date.now(),
-      updated_at: Date.now()
+      updated_at: Date.now(),
     };
-    
     schemas.push(newSchema);
   }
-  
-  // Save schemas to storage
+
   saveSchemas(schemas);
-  
-  // Hide the form and show the updated list
   hideSchemaForm();
   renderSchemas();
 }
@@ -216,10 +202,10 @@ export function saveSchemaForm() {
 export function editSchema(schemaId) {
   const schema = getSchemaById(schemaId);
   if (!schema) return;
-  
+
   // Set form title for edit mode
   document.getElementById('schema-form-title').textContent = 'Edit Schema';
-  
+
   // Set form values
   document.getElementById('schema-name').value = schema.name;
   document.getElementById('schema-description').value = schema.description || '';
@@ -228,27 +214,26 @@ export function editSchema(schemaId) {
   document.getElementById('next-button-selector').value = schema.nextButtonSelector || '';
   document.getElementById('next-delay-ms').value = schema.nextDelayMs != null ? schema.nextDelayMs : '';
   document.getElementById('max-pages').value = schema.maxPages != null ? schema.maxPages : '';
-  
+
   // Clear columns container
   document.getElementById('columns-container').innerHTML = '';
-  
+
   // Add columns to form
-  schema.columns.forEach(column => {
+  schema.columns.forEach((column) => {
     addColumnToForm(column);
   });
-  
+
   // Set edit mode and current schema ID
   editMode = true;
   currentSchemaId = schemaId;
-  
-  // Show the form
-  document.getElementById('schema-form-container').classList.remove('hidden');
-}
 
-/**
- * Delete a schema
- * @param {string} schemaId - ID of the schema to delete
- */
+  // Show the form modal
+  const modal = document.getElementById('schema-form-modal');
+  if (modal) modal.classList.remove('hidden');
+  // Ensure inner form container is visible in case it was hidden by results view
+  const formContainer = document.getElementById('schema-form-container');
+  if (formContainer) formContainer.classList.remove('hidden');
+}
 export function deleteSchema(schemaId) {
   if (confirm('Are you sure you want to delete this schema?')) {
     schemas = schemas.filter(s => s.id !== schemaId);

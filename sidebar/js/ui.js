@@ -5,6 +5,7 @@ import * as storage from "./storage.js";
 // DOM Elements
 const schemasList = document.getElementById("schemas-list");
 const emptySchemas = document.getElementById("empty-schemas");
+const schemaFormModal = document.getElementById("schema-form-modal");
 const schemaFormContainer = document.getElementById("schema-form-container");
 const schemaForm = document.getElementById("schema-form");
 const schemaFormTitle = document.getElementById("schema-form-title");
@@ -36,7 +37,9 @@ export function initTheme() {
 }
 
 /**
- * Enable/disable global sidebar controls (import/export, add schema, close, theme, results controls)
+ * Create a schema card element
+ * @param {Object} schema - Schema object
+ * @returns {HTMLElement} - Schema card element
  * @param {boolean} disabled
  */
 function setGlobalControlsDisabled(disabled) {
@@ -329,6 +332,15 @@ export function setupEventListeners(handlers) {
     });
   }
 
+  // Close Schema Form modal when clicking outside content
+  if (schemaFormModal) {
+    schemaFormModal.addEventListener("click", (event) => {
+      if (event.target === schemaFormModal) {
+        handlers.hideSchemaForm();
+      }
+    });
+  }
+
   // Listen for messages from content script
   window.addEventListener("message", (event) => {
     const message = event.data;
@@ -399,8 +411,34 @@ function createSchemaCard(schema, handlers) {
   card.querySelector(".schema-name").textContent = schema.name;
   card.querySelector(".schema-description").textContent = schema.description || "No description";
 
-  // Set columns count
-  card.querySelector(".columns-count").textContent = schema.columns.length;
+  // Render column name chips
+  const chipsContainer = card.querySelector('.columns-chips');
+  if (chipsContainer) {
+    chipsContainer.innerHTML = '';
+    const names = Array.isArray(schema.columns) ? schema.columns.map(c => (c.name || '').trim()).filter(Boolean) : [];
+    if (names.length === 0) {
+      const empty = document.createElement('span');
+      empty.className = 'chip chip-empty';
+      empty.textContent = 'No columns';
+      chipsContainer.appendChild(empty);
+    } else {
+      names.forEach((name) => {
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.textContent = name;
+        chipsContainer.appendChild(chip);
+      });
+    }
+  }
+
+  // Render meta dates
+  const createdEl = card.querySelector('.schema-created');
+  const updatedEl = card.querySelector('.schema-updated');
+  const createdAt = schema.created_at ? new Date(Number(schema.created_at)) : null;
+  const updatedAt = schema.updated_at ? new Date(Number(schema.updated_at)) : null;
+  const format = (d) => (d && !isNaN(d)) ? d.toLocaleString() : 'N/A';
+  if (createdEl) createdEl.textContent = `Created: ${format(createdAt)}`;
+  if (updatedEl) updatedEl.textContent = `Updated: ${format(updatedAt)}`;
 
   // Set up event listeners for card actions
   card.querySelector(".edit-schema").addEventListener("click", () => {
@@ -433,15 +471,15 @@ export function showSchemaForm(addColumnCallback) {
   // Add initial column
   addColumnCallback();
 
-  // Show the form
-  schemaFormContainer.classList.remove("hidden");
+  // Show the modal with the form
+  if (schemaFormModal) schemaFormModal.classList.remove('hidden');
 }
 
 /**
  * Hide the schema form
  */
 export function hideSchemaForm() {
-  schemaFormContainer.classList.add("hidden");
+  if (schemaFormModal) schemaFormModal.classList.add('hidden');
   schemaForm.reset();
   columnsContainer.innerHTML = "";
 }

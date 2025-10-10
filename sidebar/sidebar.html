@@ -69,7 +69,7 @@
             <select id="schema-sort" aria-label="Sort schemas">
               <option value="name:asc">Name (A–Z)</option>
               <option value="name:desc">Name (Z–A)</option>
-              <option value="created_at:desc">Created (Newest)</option>
+              <option value="created_at:desc" selected>Created (Newest)</option>
               <option value="created_at:asc">Created (Oldest)</option>
               <option value="updated_at:desc">Updated (Newest)</option>
               <option value="updated_at:asc">Updated (Oldest)</option>
@@ -84,82 +84,87 @@
           </div>
         </div>
 
-        <div id="schema-form-container" class="schema-form-container hidden">
-          <div class="section-header">
-            <h2 id="schema-form-title">Create Schema</h2>
-            <button id="cancel-schema-form" class="secondary-button">Cancel</button>
+        <!-- Schema Form Modal -->
+        <div id="schema-form-modal" class="modal hidden">
+          <div class="modal-content schema-form-modal-content">
+            <div id="schema-form-container" class="schema-form-container">
+              <div class="section-header">
+                <h2 id="schema-form-title">Create Schema</h2>
+                <button id="cancel-schema-form" class="secondary-button">Cancel</button>
+              </div>
+
+              <form id="schema-form">
+                <div class="form-group">
+                  <label for="schema-name">Schema Name</label>
+                  <input type="text" id="schema-name" name="schema-name" required placeholder="e.g. Product List" />
+                </div>
+
+                <div class="form-group">
+                  <label for="schema-description">Description (optional)</label>
+                  <textarea id="schema-description" name="schema-description" rows="2" placeholder="Describe what this schema scrapes (optional)"></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label for="parent-selector">Parent Selector</label>
+                  <div class="selector-input-group">
+                    <input type="text" id="parent-selector" name="parent-selector" required placeholder="e.g. .products-list" />
+                    <button type="button" class="selector-picker-button" data-index="parent-selector" title="Pick parent element from page">
+                      <span class="selector-icon">🔍</span>
+                    </button>
+                  </div>
+                  <small class="help-text">Select the parent container that holds all cards</small>
+                </div>
+
+                <div class="form-group">
+                  <label for="card-selector">Card Selector</label>
+                  <div class="selector-input-group">
+                    <input type="text" id="card-selector" name="card-selector" required placeholder="e.g. .product-card" />
+                    <button type="button" class="selector-picker-button" data-index="card-selector" title="Pick card element from page">
+                      <span class="selector-icon">🔍</span>
+                    </button>
+                  </div>
+                  <small class="help-text">Select the container element that holds each item to be scraped</small>
+                </div>
+
+                <div class="form-group">
+                  <label for="next-button-selector">Next Page Button Selector</label>
+                  <div class="selector-input-group">
+                    <input type="text" id="next-button-selector" name="next-button-selector" placeholder="e.g. .pagination .next" />
+                    <button type="button" class="selector-picker-button" data-index="next-button-selector" title="Pick next page button from page">
+                      <span class="selector-icon">🔍</span>
+                    </button>
+                  </div>
+                  <small class="help-text">Optional. Provide a selector for the button/link that moves to the next page.</small>
+                </div>
+
+                <div class="form-group">
+                  <label for="next-delay-ms">Delay before next page (ms)</label>
+                  <input type="number" min="0" step="100" id="next-delay-ms" name="next-delay-ms" placeholder="e.g. 1000" />
+                  <small class="help-text">Time to wait after clicking Next before scraping the next page.</small>
+                </div>
+
+                <div class="form-group">
+                  <label for="max-pages">Number of pages</label>
+                  <input type="number" min="1" step="1" id="max-pages" name="max-pages" placeholder="e.g. 5" />
+                  <small class="help-text">How many pages to scrape. Leave empty to scrape only the current page.</small>
+                </div>
+
+                <div class="columns-section">
+                  <h3>Columns</h3>
+
+                  <div id="columns-container">
+                    <!-- Column form fields will be dynamically inserted here -->
+                  </div>
+
+                  <button type="button" id="add-column" class="secondary-button">Add Column</button>
+                </div>
+
+                <div class="form-actions">
+                  <button type="submit" class="primary-button">Save Schema</button>
+                </div>
+              </form>
+            </div>
           </div>
-
-          <form id="schema-form">
-            <div class="form-group">
-              <label for="schema-name">Schema Name</label>
-              <input type="text" id="schema-name" name="schema-name" required placeholder="e.g. Product List" />
-            </div>
-
-            <div class="form-group">
-              <label for="schema-description">Description (optional)</label>
-              <textarea id="schema-description" name="schema-description" rows="2" placeholder="Describe what this schema scrapes (optional)"></textarea>
-            </div>
-
-            <div class="form-group">
-              <label for="parent-selector">Parent Selector</label>
-              <div class="selector-input-group">
-                <input type="text" id="parent-selector" name="parent-selector" required placeholder="e.g. .products-list" />
-                <button type="button" class="selector-picker-button" data-index="parent-selector" title="Pick parent element from page">
-                  <span class="selector-icon">🔍</span>
-                </button>
-              </div>
-              <small class="help-text">Select the parent container that holds all cards</small>
-            </div>
-
-            <div class="form-group">
-              <label for="card-selector">Card Selector</label>
-              <div class="selector-input-group">
-                <input type="text" id="card-selector" name="card-selector" required placeholder="e.g. .product-card" />
-                <button type="button" class="selector-picker-button" data-index="card-selector" title="Pick card element from page">
-                  <span class="selector-icon">🔍</span>
-                </button>
-              </div>
-              <small class="help-text">Select the container element that holds each item to be scraped</small>
-            </div>
-
-            <div class="form-group">
-              <label for="next-button-selector">Next Page Button Selector</label>
-              <div class="selector-input-group">
-                <input type="text" id="next-button-selector" name="next-button-selector" placeholder="e.g. .pagination .next" />
-                <button type="button" class="selector-picker-button" data-index="next-button-selector" title="Pick next page button from page">
-                  <span class="selector-icon">🔍</span>
-                </button>
-              </div>
-              <small class="help-text">Optional. Provide a selector for the button/link that moves to the next page.</small>
-            </div>
-
-            <div class="form-group">
-              <label for="next-delay-ms">Delay before next page (ms)</label>
-              <input type="number" min="0" step="100" id="next-delay-ms" name="next-delay-ms" placeholder="e.g. 1000" />
-              <small class="help-text">Time to wait after clicking Next before scraping the next page.</small>
-            </div>
-
-            <div class="form-group">
-              <label for="max-pages">Number of pages</label>
-              <input type="number" min="1" step="1" id="max-pages" name="max-pages" placeholder="e.g. 5" />
-              <small class="help-text">How many pages to scrape. Leave empty to scrape only the current page.</small>
-            </div>
-
-            <div class="columns-section">
-              <h3>Columns</h3>
-
-              <div id="columns-container">
-                <!-- Column form fields will be dynamically inserted here -->
-              </div>
-
-              <button type="button" id="add-column" class="secondary-button">Add Column</button>
-            </div>
-
-            <div class="form-actions">
-              <button type="submit" class="primary-button">Save Schema</button>
-            </div>
-          </form>
         </div>
 
         <div id="results-container" class="results-container hidden">
@@ -204,7 +209,14 @@
           </div>
         </div>
         <p class="schema-description"></p>
-        <div class="schema-columns"><strong>Columns:</strong> <span class="columns-count"></span></div>
+        <div class="schema-columns">
+          <strong>Columns:</strong>
+          <div class="columns-chips"></div>
+        </div>
+        <div class="schema-meta">
+          <span class="schema-created"></span>
+          <span class="schema-updated"></span>
+        </div>
         <button class="primary-button start-scraping">Start Scraping</button>
       </div>
     </template>
