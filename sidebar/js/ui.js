@@ -21,6 +21,9 @@ const THEME_KEY = "simple_scraper_theme";
 const LIGHT_THEME = "light";
 const DARK_THEME = "dark";
 
+// Keep reference to handlers for dynamic bindings
+let currentHandlers = null;
+
 /**
  * Initialize theme based on saved preference or default to dark theme
  */
@@ -205,7 +208,9 @@ function toggleTheme() {
  */
 export function setupEventListeners(handlers) {
   // Theme toggle button
-  themeToggle.addEventListener("click", toggleTheme);
+  if (themeToggle) {
+    themeToggle.addEventListener("click", toggleTheme);
+  }
 
   // Minimize sidebar button
   const minimizeBtn = document.getElementById("minimize-sidebar");
@@ -224,9 +229,12 @@ export function setupEventListeners(handlers) {
   }
 
   // Add schema button
-  document.getElementById("add-schema").addEventListener("click", () => {
-    handlers.showSchemaForm();
-  });
+  const addSchemaBtn = document.getElementById("add-schema");
+  if (addSchemaBtn) {
+    addSchemaBtn.addEventListener("click", () => {
+      handlers.showSchemaForm();
+    });
+  }
 
   // Schema search input
   const schemaSearch = document.getElementById("schema-search");
@@ -247,9 +255,12 @@ export function setupEventListeners(handlers) {
   }
 
   // Cancel schema form button
-  document.getElementById("cancel-schema-form").addEventListener("click", () => {
-    handlers.hideSchemaForm();
-  });
+  const cancelSchemaBtn = document.getElementById("cancel-schema-form");
+  if (cancelSchemaBtn) {
+    cancelSchemaBtn.addEventListener("click", () => {
+      handlers.hideSchemaForm();
+    });
+  }
 
   // Add column button
   document.getElementById("add-column").addEventListener("click", () => {
@@ -266,28 +277,43 @@ export function setupEventListeners(handlers) {
   });
 
   // Schema form submission
-  schemaForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    handlers.saveSchemaForm();
-  });
+  if (schemaForm) {
+    schemaForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      handlers.saveSchemaForm();
+    });
+  }
 
   // Back to schemas button
-  document.getElementById("back-to-schemas").addEventListener("click", () => {
-    handlers.hideResultsView();
-  });
+  const backBtn = document.getElementById("back-to-schemas");
+  if (backBtn) {
+    backBtn.addEventListener("click", () => {
+      handlers.hideResultsView();
+    });
+  }
 
   // Export dropdown buttons
-  document.getElementById("export-results").addEventListener("click", () => {
-    handlers.exportResults();
-    document.getElementById("export-options").classList.remove("show");
-    document.querySelector("#export-button .dropdown-arrow").classList.remove("rotated");
-  });
+  const exportCsvBtn = document.getElementById("export-results");
+  if (exportCsvBtn) {
+    exportCsvBtn.addEventListener("click", () => {
+      handlers.exportResults();
+      const opts = document.getElementById("export-options");
+      if (opts) opts.classList.remove("show");
+      const arrow = document.querySelector("#export-button .dropdown-arrow");
+      if (arrow) arrow.classList.remove("rotated");
+    });
+  }
 
-  document.getElementById("export-json").addEventListener("click", () => {
-    handlers.exportAsJson();
-    document.getElementById("export-options").classList.remove("show");
-    document.querySelector("#export-button .dropdown-arrow").classList.remove("rotated");
-  });
+  const exportJsonBtn = document.getElementById("export-json");
+  if (exportJsonBtn) {
+    exportJsonBtn.addEventListener("click", () => {
+      handlers.exportAsJson();
+      const opts = document.getElementById("export-options");
+      if (opts) opts.classList.remove("show");
+      const arrow = document.querySelector("#export-button .dropdown-arrow");
+      if (arrow) arrow.classList.remove("rotated");
+    });
+  }
 
   // Close export dropdown when clicking outside
   document.addEventListener("click", (e) => {
@@ -296,21 +322,25 @@ export function setupEventListeners(handlers) {
     const exportOptions = document.getElementById("export-options");
     const dropdownArrow = document.querySelector("#export-button .dropdown-arrow");
 
-    if (exportDropdown && !exportDropdown.contains(e.target) && exportOptions.classList.contains("show")) {
+    if (exportDropdown && exportOptions && !exportDropdown.contains(e.target) && exportOptions.classList.contains("show")) {
       exportOptions.classList.remove("show");
-      dropdownArrow && dropdownArrow.classList.remove("rotated");
+      if (dropdownArrow) dropdownArrow.classList.remove("rotated");
     }
   });
 
   // Toggle export dropdown when clicking the export button
-  document.getElementById("export-button").addEventListener("click", (e) => {
-    e.stopPropagation();
-    const exportOptions = document.getElementById("export-options");
-    const dropdownArrow = document.querySelector("#export-button .dropdown-arrow");
-
-    exportOptions.classList.toggle("show");
-    dropdownArrow.classList.toggle("rotated", exportOptions.classList.contains("show"));
-  });
+  const exportButton = document.getElementById("export-button");
+  if (exportButton) {
+    exportButton.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const exportOptions = document.getElementById("export-options");
+      const dropdownArrow = document.querySelector("#export-button .dropdown-arrow");
+      if (exportOptions) {
+        exportOptions.classList.toggle("show");
+        if (dropdownArrow) dropdownArrow.classList.toggle("rotated", exportOptions.classList.contains("show"));
+      }
+    });
+  }
 
   // Pages dropdown basic toggle (keeps it responsive even before results handlers are attached)
   const pagesButton = document.getElementById("pages-button");
@@ -347,22 +377,19 @@ export function setupEventListeners(handlers) {
     const message = event.data;
 
     if (message.action === "scrapingResults") {
-      handlers.handleScrapingResults(message.results);
+      handlers.handleScrapingResults(message.results, message.diagnostics || []);
     } else if (message.action === "scrapingError") {
-      handlers.handleScrapingError(message.error);
+      handlers.handleScrapingError(message.error, message.diagnostics || []);
     } else if (message.action === "scrapingProgress") {
       // Progressive multi-page results
-      handlers.handleScrapingProgress && handlers.handleScrapingProgress(message.results, message.pageIndex, message.totalPages);
+      handlers.handleScrapingProgress && handlers.handleScrapingProgress(message.results, message.pageIndex, message.totalPages, message.diagnostics || []);
     } else if (message.action === "scrapingDone") {
-      handlers.handleScrapingDone && handlers.handleScrapingDone();
+      handlers.handleScrapingDone && handlers.handleScrapingDone(message.diagnostics || []);
     } else if (message.action === "elementSelected") {
       handlers.handleElementSelected(message.selector, message.targetIndex);
     }
   });
 }
-
-// Keep reference to handlers for dynamic bindings
-let currentHandlers = null;
 
 /**
  * Render the list of schemas

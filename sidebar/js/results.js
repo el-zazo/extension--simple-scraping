@@ -3,7 +3,7 @@ import { uuidv4 } from "./utils.js";
 import * as ui from "./ui.js";
 
 // State variables
-let pages = []; // [{ index: 1, items: [...] }]
+let pages = []; // [{ index: 1, items: [...], diagnostics: [...] }]
 let totalPagesPlanned = 1;
 let resultsModalListenersAttached = false;
 
@@ -12,9 +12,21 @@ let resultsModalListenersAttached = false;
  * @param {Array} results - Array of scraping result objects
  */
 export function setResults(results) {
-  pages = [{ index: 1, items: results }];
+  pages = [{ index: 1, items: results, diagnostics: [] }];
   totalPagesPlanned = 1;
   // Initialize pages filter UI for single-page results
+  renderPagesSelect();
+  attachFiltersHandlers();
+}
+
+/**
+ * Set scraping results with diagnostics (single page)
+ * @param {Array} results
+ * @param {Array} diagnostics
+ */
+export function setResultsWithDiagnostics(results, diagnostics) {
+  pages = [{ index: 1, items: results, diagnostics: Array.isArray(diagnostics) ? diagnostics : [] }];
+  totalPagesPlanned = 1;
   renderPagesSelect();
   attachFiltersHandlers();
 }
@@ -86,6 +98,9 @@ export function renderResultsTable() {
 
   // Clear the container
   resultsTableContainer.innerHTML = "";
+
+  // Render diagnostics above the table
+  renderDiagnostics();
 
   // If no results, show message
   const allItems = pages.flatMap((p) => p.items);
@@ -196,12 +211,12 @@ function renderPagesSelect() {
 /**
  * Handle progressive page results
  */
-export function addPageResults(items, pageIndex, totalPages) {
+export function addPageResults(items, pageIndex, totalPages, diagnostics = []) {
   totalPagesPlanned = totalPages || totalPagesPlanned;
   // Replace or add page
   const existingIdx = pages.findIndex((p) => p.index === pageIndex);
-  if (existingIdx >= 0) pages[existingIdx] = { index: pageIndex, items };
-  else pages.push({ index: pageIndex, items });
+  if (existingIdx >= 0) pages[existingIdx] = { index: pageIndex, items, diagnostics };
+  else pages.push({ index: pageIndex, items, diagnostics });
   // Sort by index
   pages.sort((a, b) => a.index - b.index);
   // Ensure filters UI shows pages
@@ -301,6 +316,61 @@ function updateSelectAllButtonLabel() {
     return;
   }
   btn.textContent = areAllPagesChecked() ? "Deselect All" : "Select All";
+}
+
+/**
+ * Render diagnostics panel above the table
+ */
+function renderDiagnostics() {
+  const container = document.getElementById("results-diagnostics-container");
+  if (!container) return;
+
+  // Reset
+  container.innerHTML = "";
+
+  // Title
+  const title = document.createElement("h3");
+  title.textContent = "Scraping Diagnostics";
+  container.appendChild(title);
+
+  const selectedPageIndices = getSelectedPageIndices();
+  const relevantPages = (selectedPageIndices.length > 0 ? pages.filter((p) => selectedPageIndices.includes(p.index)) : pages);
+
+  if (!relevantPages || relevantPages.length === 0) return;
+
+  if (relevantPages.length > 1) {
+    relevantPages.forEach((p) => {
+      const groupTitle = document.createElement("div");
+      groupTitle.className = "diagnostics-page-title";
+      groupTitle.textContent = `Page ${p.index}`;
+      container.appendChild(groupTitle);
+
+      appendDiagnosticsList(container, p.diagnostics);
+    });
+  } else {
+    appendDiagnosticsList(container, relevantPages[0].diagnostics);
+  }
+}
+
+function appendDiagnosticsList(container, diagnostics) {
+  const list = document.createElement("ul");
+  list.id = "results-diagnostics-list";
+  list.className = "results-diagnostics-list";
+
+  const items = Array.isArray(diagnostics) ? diagnostics : [];
+  if (items.length === 0) {
+    const li = document.createElement("li");
+    li.textContent = "No diagnostics available.";
+    list.appendChild(li);
+  } else {
+    items.forEach((msg) => {
+      const li = document.createElement("li");
+      li.textContent = msg;
+      list.appendChild(li);
+    });
+  }
+
+  container.appendChild(list);
 }
 
 /**

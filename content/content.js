@@ -679,9 +679,9 @@ function startScraping(schema) {
   } else {
     // Fallback to single page scrape and send once
     try {
-      const results = scrapeCurrentPage(schema);
+      const { results, diagnostics } = scrapeCurrentPageDetailed(schema);
       if (scraper.sidebar && scraper.sidebar.contentWindow) {
-        scraper.sidebar.contentWindow.postMessage({ action: "scrapingResults", results }, "*");
+        scraper.sidebar.contentWindow.postMessage({ action: "scrapingResults", results, diagnostics }, "*");
         scraper.sidebar.contentWindow.postMessage({ action: "scrapingDone" }, "*");
       }
     } catch (error) {
@@ -690,22 +690,42 @@ function startScraping(schema) {
   }
 }
 
-function scrapeCurrentPage(schema) {
+function scrapeCurrentPageDetailed(schema) {
   const results = [];
-  const columns = schema.columns;
-  const parentSelector = schema.parentSelector;
-  const cardSelector = schema.cardSelector;
+  const diagnostics = [];
+  const columns = schema.columns || [];
+  const parentSelector = (schema.parentSelector || "").trim();
+  const cardSelector = (schema.cardSelector || "").trim();
+
+  // Record presence of selectors
+  diagnostics.push(parentSelector ? "Parent selector provided." : "Parent selector not provided.");
+  diagnostics.push(cardSelector ? "Card selector provided." : "Card selector not provided.");
+
   let cards = [];
   if (parentSelector && cardSelector) {
-    const parent = document.querySelector(parentSelector);
+    const parent = safeQuerySelector(parentSelector);
     if (parent) {
-      cards = Array.from(parent.querySelectorAll(cardSelector));
+      diagnostics.push("Parent element found.");
+      try {
+        cards = Array.from(parent.querySelectorAll(cardSelector));
+      } catch (e) {
+        diagnostics.push("Card selector invalid under parent.");
+      }
+    } else {
+      diagnostics.push("Parent element NOT found.");
     }
   } else if (cardSelector) {
-    cards = Array.from(document.querySelectorAll(cardSelector));
+    try {
+      cards = safeQuerySelectorAll(cardSelector);
+    } catch (_) {}
+  }
+
+  if (cardSelector) {
+    diagnostics.push(`Cards found: ${cards.length}.`);
   }
 
   if (cards.length > 0) {
+    diagnostics.push("Using card-based scraping (iterate cards and query columns inside each card).");
     cards.forEach((card) => {
       const rowData = {};
       columns.forEach((column) => {
@@ -723,18 +743,24 @@ function scrapeCurrentPage(schema) {
       results.push(rowData);
     });
   } else {
-    // Fallback to the old scraping method if no cards found
-    if (columns.some((col) => col.multiple_elements)) {
+    diagnostics.push("No cards found. Falling back to non-card scraping.");
+    const hasMultiple = columns.some((col) => col.multiple_elements);
+    diagnostics.push(hasMultiple ? "Columns marked as multiple elements exist." : "No columns marked as multiple elements.");
+
+    if (hasMultiple) {
       // Find all possible elements for each column
       const elementsPerColumn = columns.map((column) => {
         return {
           column,
-          elements: Array.from(document.querySelectorAll(column.selector)),
+          elements: safeQuerySelectorAll(column.selector),
         };
       });
 
       // Use the column with multiple_elements as the base for iteration
       const baseColumn = elementsPerColumn.find((item) => item.column.multiple_elements);
+      if (baseColumn) {
+        diagnostics.push(`Base column for iteration: ${baseColumn.column.name} (${baseColumn.elements.length} elements).`);
+      }
 
       if (baseColumn && baseColumn.elements.length > 0) {
         baseColumn.elements.forEach((baseElement, index) => {
@@ -748,13 +774,13 @@ function scrapeCurrentPage(schema) {
               value = extractValue(baseElement, column);
             } else if (column.multiple_elements) {
               // For other multiple element columns, use the corresponding element at the same index
-              const columnElements = document.querySelectorAll(column.selector);
+              const columnElements = safeQuerySelectorAll(column.selector);
               if (columnElements.length > index) {
                 value = extractValue(columnElements[index], column);
               }
             } else {
               // For non-multiple columns, use their own selectors to find elements
-              const singleElement = document.querySelector(column.selector);
+              const singleElement = safeQuerySelector(column.selector);
               if (singleElement) {
                 value = extractValue(singleElement, column);
               }
@@ -765,13 +791,16 @@ function scrapeCurrentPage(schema) {
 
           results.push(rowData);
         });
+        diagnostics.push(`Rows produced via multiple-elements fallback: ${results.length}.`);
+      } else {
+        diagnostics.push("No elements found for base multiple column. No rows produced.");
       }
     } else {
       // For schemas without multiple elements, just extract each column once
       let anyElementFound = false;
       const rowData = {};
       columns.forEach((column) => {
-        const element = document.querySelector(column.selector);
+        const element = safeQuerySelector(column.selector);
         if (element) {
           rowData[column.name] = extractValue(element, column);
           anyElementFound = true;
@@ -781,9 +810,19 @@ function scrapeCurrentPage(schema) {
       });
       if (anyElementFound) {
         results.push(rowData);
+        diagnostics.push("Single-row extraction produced 1 row.");
+      } else {
+        diagnostics.push("No elements found for any column in single extraction.");
       }
     }
   }
+
+  return { results, diagnostics };
+}
+
+// Backwards-compatible wrapper returning only results
+function scrapeCurrentPage(schema) {
+  const { results } = scrapeCurrentPageDetailed(schema);
   return results;
 }
 
@@ -798,12 +837,13 @@ async function startScrapingMultiPage(schema) {
       if (!scraper.scrapingActive) break;
 
       // Scrape current page
-      const pageResults = scrapeCurrentPage(schema);
+      const { results: pageResults, diagnostics } = scrapeCurrentPageDetailed(schema);
       if (scraper.sidebar && scraper.sidebar.contentWindow) {
         scraper.sidebar.contentWindow.postMessage(
           {
             action: "scrapingProgress",
             results: pageResults,
+            diagnostics,
             pageIndex,
             totalPages: maxPages,
           },

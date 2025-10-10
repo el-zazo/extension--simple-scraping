@@ -2,6 +2,7 @@
 import { uuidv4 } from './utils.js';
 import { loadSchemas, saveSchemas } from './storage.js';
 import * as ui from './ui.js';
+import * as results from './results.js';
 
 // Constants
 const SCHEMA_FILE_NAME = 'simple-scraper-schemas.json';
@@ -258,6 +259,11 @@ export function startScraping(schemaId) {
 
   // Update UI state to reflect running
   ui.setScrapingUIState(schemaId, true);
+
+  // Proactively open the results view so the user sees the modal immediately
+  if (typeof results.showResultsView === 'function') {
+    results.showResultsView();
+  }
 }
 
 /**
