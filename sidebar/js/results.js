@@ -5,6 +5,7 @@ import * as ui from "./ui.js";
 // State variables
 let pages = []; // [{ index: 1, items: [...] }]
 let totalPagesPlanned = 1;
+let resultsModalListenersAttached = false;
 
 /**
  * Set scraping results
@@ -31,7 +32,14 @@ export function getResults() {
  * Show results view
  */
 export function showResultsView() {
-  ui.showResultsView();
+  // Prefer the modal if present; fallback to previous inline view
+  const modal = document.getElementById("results-modal");
+  if (modal) {
+    modal.classList.remove("hidden");
+    attachResultsModalOutsideClick();
+  } else {
+    ui.showResultsView();
+  }
 }
 
 // Initialize pages dropdown (so it can open even before any results)
@@ -46,9 +54,26 @@ export function initPagesDropdown() {
  * Hide results view
  */
 export function hideResultsView() {
-  ui.hideResultsView();
+  const modal = document.getElementById("results-modal");
+  if (modal) {
+    modal.classList.add("hidden");
+  } else {
+    ui.hideResultsView();
+  }
   pages = [];
   totalPagesPlanned = 1;
+}
+
+function attachResultsModalOutsideClick() {
+  if (resultsModalListenersAttached) return;
+  const modal = document.getElementById("results-modal");
+  if (!modal) return;
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      hideResultsView();
+    }
+  });
+  resultsModalListenersAttached = true;
 }
 
 /**

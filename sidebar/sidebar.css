@@ -48,6 +48,11 @@
   max-width: 800px;
 }
 
+/* Wider modal content variant for results */
+.results-modal-content {
+  max-width: 1000px;
+}
+
 .modal-content h3 {
   margin-top: 0;
   margin-bottom: 16px;
@@ -170,7 +175,9 @@ body {
 /* Section headers */
 .section-header {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 5px;
+  justify-content: center;
   align-items: center;
   margin-bottom: 16px;
 }

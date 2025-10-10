@@ -10,6 +10,7 @@ const schemaFormContainer = document.getElementById("schema-form-container");
 const schemaForm = document.getElementById("schema-form");
 const schemaFormTitle = document.getElementById("schema-form-title");
 const columnsContainer = document.getElementById("columns-container");
+const resultsModal = document.getElementById("results-modal");
 const resultsContainer = document.getElementById("results-container");
 const resultsTableContainer = document.getElementById("results-table-container");
 const themeToggle = document.getElementById("theme-toggle");

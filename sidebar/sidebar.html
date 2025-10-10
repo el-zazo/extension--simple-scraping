@@ -167,33 +167,37 @@
           </div>
         </div>
 
-        <div id="results-container" class="results-container hidden">
-          <div class="section-header">
-            <h2>Scraping Results</h2>
-            <div>
-              <div class="export-dropdown pages-dropdown">
-                <button id="pages-button" class="secondary-button">Pages <span class="dropdown-arrow">▼</span></button>
-                <div id="pages-options" class="export-options">
-                  <!-- Page checkboxes will be dynamically inserted here -->
-                  <button id="select-all-pages" class="export-option" type="button">Select All</button>
-                  <!-- Page options rendered below -->
+        <!-- Results Modal -->
+        <div id="results-modal" class="modal hidden">
+          <div class="modal-content results-modal-content">
+            <div id="results-container" class="results-container">
+              <div class="section-header">
+                <h2>Scraping Results</h2>
+                <div>
+                  <div class="export-dropdown pages-dropdown">
+                    <button id="pages-button" class="secondary-button">Pages <span class="dropdown-arrow">▼</span></button>
+                    <div id="pages-options" class="export-options">
+                      <!-- Page checkboxes will be dynamically inserted here -->
+                      <button id="select-all-pages" class="export-option" type="button">Select All</button>
+                      <!-- Page options rendered below -->
+                    </div>
+                  </div>
+                  <div class="export-dropdown">
+                    <button id="export-button" class="secondary-button">Export <span class="dropdown-arrow">▼</span></button>
+                    <div id="export-options" class="export-options">
+                      <button id="export-results" class="export-option">CSV</button>
+                      <button id="export-json" class="export-option">JSON</button>
+                    </div>
+                  </div>
+                  <button id="back-to-schemas" class="secondary-button">Back</button>
                 </div>
               </div>
-              <div class="export-dropdown">
-                <button id="export-button" class="secondary-button">Export <span class="dropdown-arrow">▼</span></button>
-                <div id="export-options" class="export-options">
-                  <button id="export-results" class="export-option">CSV</button>
-                  <button id="export-json" class="export-option">JSON</button>
-                </div>
+
+              <div id="results-table-container" class="results-table-container">
+                <!-- Results table will be dynamically inserted here -->
               </div>
-              <button id="back-to-schemas" class="secondary-button">Back</button>
             </div>
           </div>
-
-          <div id="results-table-container" class="results-table-container">
-            <!-- Results table will be dynamically inserted here -->
-          </div>
-          
         </div>
       </div>
     </div>
