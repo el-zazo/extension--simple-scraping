@@ -746,19 +746,6 @@ export function handleElementSelected(selector, targetIndex) {
     return;
   }
 
-  // Unique key selector
-  if (targetIndex === "unique-key-selector") {
-    const uniqueKeyInput = document.getElementById("unique-key-selector");
-    if (uniqueKeyInput) {
-      uniqueKeyInput.value = selector;
-      uniqueKeyInput.classList.add("selector-updated");
-      setTimeout(() => {
-        uniqueKeyInput.classList.remove("selector-updated");
-      }, 1000);
-    }
-    return;
-  }
-
   // Get the closest column form row and find the selector input within it
   const columnRow = button.closest(".column-form-row");
 
@@ -855,7 +842,6 @@ export function getSchemaFormData() {
     scrollByPx: parseInt(document.getElementById("scroll-by-px")?.value, 10) || 0,
     scrollPauseMs: parseInt(document.getElementById("scroll-pause-ms")?.value, 10) || 0,
     maxScrollSteps: parseInt(document.getElementById("max-scroll-steps")?.value, 10) || 0,
-    uniqueKeySelector: document.getElementById("unique-key-selector")?.value.trim() || "",
   };
 
   return formData;

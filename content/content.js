@@ -790,6 +790,8 @@ function scrapeCurrentPageDetailed(schema) {
   }
 
   if (cards.length > 0) {
+    cards = cards.filter((card) => card && card.getAttribute("scraped") !== "true");
+    diagnostics.push(`Cards to process (excluding already scraped): ${cards.length}.`);
     diagnostics.push(
       "Using card-based scraping (iterate cards and query columns inside each card)."
     );
@@ -811,6 +813,7 @@ function scrapeCurrentPageDetailed(schema) {
         rowData[column.name] = value;
       });
       results.push(rowData);
+      try { card.setAttribute("scraped", "true"); } catch (_) {}
     });
   } else {
     diagnostics.push("No cards found. Falling back to non-card scraping.");
@@ -985,7 +988,6 @@ async function startScrapingWithScrolling(schema) {
     scraper.scrapingActive = true;
     const parentSelector = (schema.parentSelector || "").trim();
     const cardSelector = (schema.cardSelector || "").trim();
-    const uniqueKeySelector = (schema.uniqueKeySelector || "").trim();
     const scrollByPx = Math.max(1, parseInt(schema.scrollByPx || 1000, 10));
 
     // Treat 0 or empty as "not set" and fall back to 1000ms
@@ -1000,7 +1002,7 @@ async function startScrapingWithScrolling(schema) {
       ? rawMaxSteps
       : Math.max(1, Math.ceil(document.body.scrollHeight / scrollByPx));
 
-    const seen = new Set();
+    // Rely on scraped="true" attribute to avoid duplicates across steps/runs
 
     for (let step = 1; step <= maxSteps; step++) {
       if (!scraper.scrapingActive) break;
@@ -1023,36 +1025,14 @@ async function startScrapingWithScrolling(schema) {
         } catch (_) {}
       }
 
+      // Exclude cards already marked as scraped in prior runs/steps
+      cards = cards.filter((card) => card && card.getAttribute("scraped") !== "true");
+
       diagnostics.push(
         `Scrolling step ${step}/${maxSteps}. Visible cards: ${cards.length}.`
       );
 
       for (const card of cards) {
-        let key = "";
-        try {
-          if (uniqueKeySelector) {
-            const keyEl = card.querySelector(uniqueKeySelector);
-            if (keyEl) {
-              key = (
-                keyEl.getAttribute("href") ||
-                keyEl.getAttribute("src") ||
-                keyEl.textContent ||
-                ""
-              ).trim();
-            }
-          }
-          if (!key) {
-            key = (
-              card.getAttribute("data-id") ||
-              card.textContent ||
-              ""
-            ).trim();
-          }
-        } catch (_) {}
-
-        if (!key) continue; // if no key at all, skip to avoid unstable duplicates
-        if (seen.has(key)) continue;
-
         const rowData = {};
         columns.forEach((column) => {
           let value = "";
@@ -1064,9 +1044,10 @@ async function startScrapingWithScrolling(schema) {
           } catch (_) {}
           rowData[column.name] = value;
         });
-
-        seen.add(key);
         pageResults.push(rowData);
+
+        // Mark card as scraped so it won't be reprocessed on next steps/runs
+        try { card.setAttribute("scraped", "true"); } catch (_) {}
       }
 
       if (

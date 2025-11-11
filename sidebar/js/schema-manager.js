@@ -173,7 +173,6 @@ export function saveSchemaForm() {
         scrollByPx: formData.scrollByPx,
         scrollPauseMs: formData.scrollPauseMs,
         maxScrollSteps: formData.maxScrollSteps,
-        uniqueKeySelector: formData.uniqueKeySelector,
         columns: formData.columns,
         updated_at: Date.now(),
       };
@@ -193,7 +192,6 @@ export function saveSchemaForm() {
       scrollByPx: formData.scrollByPx,
       scrollPauseMs: formData.scrollPauseMs,
       maxScrollSteps: formData.maxScrollSteps,
-      uniqueKeySelector: formData.uniqueKeySelector,
       columns: formData.columns,
       created_at: Date.now(),
       updated_at: Date.now(),
@@ -233,12 +231,10 @@ export function editSchema(schemaId) {
   const scrollByPxEl = document.getElementById('scroll-by-px');
   const scrollPauseMsEl = document.getElementById('scroll-pause-ms');
   const maxScrollStepsEl = document.getElementById('max-scroll-steps');
-  const uniqueKeySelectorEl = document.getElementById('unique-key-selector');
   if (enableScrollingEl) enableScrollingEl.checked = !!schema.enableScrolling;
   if (scrollByPxEl) scrollByPxEl.value = schema.scrollByPx != null ? schema.scrollByPx : '';
   if (scrollPauseMsEl) scrollPauseMsEl.value = schema.scrollPauseMs != null ? schema.scrollPauseMs : '';
   if (maxScrollStepsEl) maxScrollStepsEl.value = schema.maxScrollSteps != null ? schema.maxScrollSteps : '';
-  if (uniqueKeySelectorEl) uniqueKeySelectorEl.value = schema.uniqueKeySelector || '';
   if (scrollingConfigEl) {
     if (enableScrollingEl && enableScrollingEl.checked) {
       scrollingConfigEl.classList.remove('hidden');
