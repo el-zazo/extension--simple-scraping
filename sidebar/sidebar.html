@@ -160,20 +160,20 @@
                 <div id="scrolling-config" class="scrolling-config hidden">
                   <div class="form-group">
                     <label for="scroll-by-px">Scroll By (px)</label>
-                    <input type="number" min="1" step="50" id="scroll-by-px" name="scroll-by-px" placeholder="e.g. 800" />
-                    <small class="help-text">How many pixels to scroll each step.</small>
+                    <input type="number" min="0" step="1" id="scroll-by-px" name="scroll-by-px" placeholder="e.g. 800" value="1000" />
+                    <small class="help-text">How many pixels to scroll each step. Leave empty or set 0 to use the default 1000 px.</small>
                   </div>
 
                   <div class="form-group">
                     <label for="scroll-pause-ms">Pause Between Scrolls (ms)</label>
-                    <input type="number" min="0" step="100" id="scroll-pause-ms" name="scroll-pause-ms" placeholder="e.g. 400" />
-                    <small class="help-text">Wait time after each scroll before scraping new items.</small>
+                    <input type="number" min="0" step="100" id="scroll-pause-ms" name="scroll-pause-ms" placeholder="e.g. 400" value="1000" />
+                    <small class="help-text">Wait time after each scroll before scraping new items. Leave empty or set 0 to use the default 1000 ms.</small>
                   </div>
 
                   <div class="form-group">
                     <label for="max-scroll-steps">Max Scroll Steps</label>
-                    <input type="number" min="1" step="1" id="max-scroll-steps" name="max-scroll-steps" placeholder="e.g. 100" />
-                    <small class="help-text">Safety limit to stop scrolling.</small>
+                    <input type="number" min="0" step="1" id="max-scroll-steps" name="max-scroll-steps" placeholder="e.g. 100" />
+                    <small class="help-text">Safety limit to stop scrolling. Leave empty or set 0 to scroll until end of page (estimated as document.body.scrollHeight ÷ Scroll By).</small>
                   </div>
 
                   <div class="form-group">

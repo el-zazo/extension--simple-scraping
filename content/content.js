@@ -986,12 +986,19 @@ async function startScrapingWithScrolling(schema) {
     const parentSelector = (schema.parentSelector || "").trim();
     const cardSelector = (schema.cardSelector || "").trim();
     const uniqueKeySelector = (schema.uniqueKeySelector || "").trim();
-    const scrollByPx = Math.max(
-      1,
-      parseInt(schema.scrollByPx || window.innerHeight || 800, 10)
-    );
-    const pauseMs = Math.max(0, parseInt(schema.scrollPauseMs || 300, 10));
-    const maxSteps = Math.max(1, parseInt(schema.maxScrollSteps || 50, 10));
+    const scrollByPx = Math.max(1, parseInt(schema.scrollByPx || 1000, 10));
+
+    // Treat 0 or empty as "not set" and fall back to 1000ms
+    const rawPauseMs = parseInt(schema.scrollPauseMs, 10);
+    const pauseMs = Number.isFinite(rawPauseMs) && rawPauseMs !== 0
+      ? Math.max(0, rawPauseMs)
+      : 1000;
+
+    // Default max steps: scroll to end of page when empty or 0, using page height / scrollByPx
+    const rawMaxSteps = parseInt(schema.maxScrollSteps, 10);
+    const maxSteps = Number.isFinite(rawMaxSteps) && rawMaxSteps > 0
+      ? rawMaxSteps
+      : Math.max(1, Math.ceil(document.body.scrollHeight / scrollByPx));
 
     const seen = new Set();
 
