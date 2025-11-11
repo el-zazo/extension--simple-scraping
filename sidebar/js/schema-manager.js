@@ -169,6 +169,11 @@ export function saveSchemaForm() {
         nextButtonSelector: formData.nextButtonSelector,
         nextDelayMs: formData.nextDelayMs,
         maxPages: formData.maxPages,
+        enableScrolling: !!formData.enableScrolling,
+        scrollByPx: formData.scrollByPx,
+        scrollPauseMs: formData.scrollPauseMs,
+        maxScrollSteps: formData.maxScrollSteps,
+        uniqueKeySelector: formData.uniqueKeySelector,
         columns: formData.columns,
         updated_at: Date.now(),
       };
@@ -184,10 +189,16 @@ export function saveSchemaForm() {
       nextButtonSelector: formData.nextButtonSelector,
       nextDelayMs: formData.nextDelayMs,
       maxPages: formData.maxPages,
+      enableScrolling: !!formData.enableScrolling,
+      scrollByPx: formData.scrollByPx,
+      scrollPauseMs: formData.scrollPauseMs,
+      maxScrollSteps: formData.maxScrollSteps,
+      uniqueKeySelector: formData.uniqueKeySelector,
       columns: formData.columns,
       created_at: Date.now(),
       updated_at: Date.now(),
     };
+
     schemas.push(newSchema);
   }
 
@@ -215,6 +226,35 @@ export function editSchema(schemaId) {
   document.getElementById('next-button-selector').value = schema.nextButtonSelector || '';
   document.getElementById('next-delay-ms').value = schema.nextDelayMs != null ? schema.nextDelayMs : '';
   document.getElementById('max-pages').value = schema.maxPages != null ? schema.maxPages : '';
+
+  // Scrolling fields
+  const enableScrollingEl = document.getElementById('enable-scrolling');
+  const scrollingConfigEl = document.getElementById('scrolling-config');
+  const scrollByPxEl = document.getElementById('scroll-by-px');
+  const scrollPauseMsEl = document.getElementById('scroll-pause-ms');
+  const maxScrollStepsEl = document.getElementById('max-scroll-steps');
+  const uniqueKeySelectorEl = document.getElementById('unique-key-selector');
+  if (enableScrollingEl) enableScrollingEl.checked = !!schema.enableScrolling;
+  if (scrollByPxEl) scrollByPxEl.value = schema.scrollByPx != null ? schema.scrollByPx : '';
+  if (scrollPauseMsEl) scrollPauseMsEl.value = schema.scrollPauseMs != null ? schema.scrollPauseMs : '';
+  if (maxScrollStepsEl) maxScrollStepsEl.value = schema.maxScrollSteps != null ? schema.maxScrollSteps : '';
+  if (uniqueKeySelectorEl) uniqueKeySelectorEl.value = schema.uniqueKeySelector || '';
+  if (scrollingConfigEl) {
+    if (enableScrollingEl && enableScrollingEl.checked) {
+      scrollingConfigEl.classList.remove('hidden');
+    } else {
+      scrollingConfigEl.classList.add('hidden');
+    }
+  }
+
+  // Ensure UI disables/enables scrolling inputs consistently with checkbox state
+  if (enableScrollingEl) {
+    try {
+      enableScrollingEl.dispatchEvent(new Event('change'));
+    } catch (_) {
+      // no-op
+    }
+  }
 
   // Clear columns container
   document.getElementById('columns-container').innerHTML = '';

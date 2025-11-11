@@ -149,6 +149,45 @@
                   <small class="help-text">How many pages to scrape. Leave empty to scrape only the current page.</small>
                 </div>
 
+                <div class="form-group">
+                  <label for="enable-scrolling" class="checkbox-label">
+                    <input type="checkbox" id="enable-scrolling" name="enable-scrolling" />
+                    Enable Scrolling Mode
+                  </label>
+                  <small class="help-text">Use when the page loads/unloads items as you scroll. This will keep scrolling and collecting new cards.</small>
+                </div>
+
+                <div id="scrolling-config" class="scrolling-config hidden">
+                  <div class="form-group">
+                    <label for="scroll-by-px">Scroll By (px)</label>
+                    <input type="number" min="1" step="50" id="scroll-by-px" name="scroll-by-px" placeholder="e.g. 800" />
+                    <small class="help-text">How many pixels to scroll each step.</small>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="scroll-pause-ms">Pause Between Scrolls (ms)</label>
+                    <input type="number" min="0" step="100" id="scroll-pause-ms" name="scroll-pause-ms" placeholder="e.g. 400" />
+                    <small class="help-text">Wait time after each scroll before scraping new items.</small>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="max-scroll-steps">Max Scroll Steps</label>
+                    <input type="number" min="1" step="1" id="max-scroll-steps" name="max-scroll-steps" placeholder="e.g. 100" />
+                    <small class="help-text">Safety limit to stop scrolling.</small>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="unique-key-selector">Unique Key Selector (optional)</label>
+                    <div class="selector-input-group">
+                      <input type="text" id="unique-key-selector" name="unique-key-selector" placeholder="e.g. .item-id or a child that uniquely identifies a card" />
+                      <button type="button" class="selector-picker-button" data-index="unique-key-selector" title="Pick unique key element from page">
+                        <span class="selector-icon">🔍</span>
+                      </button>
+                    </div>
+                    <small class="help-text">Used to deduplicate and continue from last item. If empty, text content of the card is used.</small>
+                  </div>
+                </div>
+
                 <div class="columns-section">
                   <h3>Columns</h3>
 

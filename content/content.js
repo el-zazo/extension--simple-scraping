@@ -46,7 +46,10 @@ function initialize() {
 document.addEventListener(
   "keydown",
   function (event) {
-    if ((event.key === "Escape" || event.keyCode === 27) && scraper.selectorMode) {
+    if (
+      (event.key === "Escape" || event.keyCode === 27) &&
+      scraper.selectorMode
+    ) {
       console.log("Global ESC key handler triggered");
       event.preventDefault();
       event.stopPropagation();
@@ -107,7 +110,7 @@ function injectSidebar() {
     left: 0;
     width: ${SIDEBAR_WIDTH}px;
     height: 100%;
-    z-index: 9999;
+    z-index: 100000000;
     border: none;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
     transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s cubic-bezier(0.4,0,0.2,1);
@@ -152,7 +155,11 @@ function deleteSidebar() {
  */
 function toggleSidebar() {
   if (scraper.sidebar) {
-    if (scraper.sidebar.style.transform === `translateX(-${SIDEBAR_WIDTH}px)` || scraper.sidebar.style.display === "none" || scraper.sidebar.style.opacity === "0") {
+    if (
+      scraper.sidebar.style.transform === `translateX(-${SIDEBAR_WIDTH}px)` ||
+      scraper.sidebar.style.display === "none" ||
+      scraper.sidebar.style.opacity === "0"
+    ) {
       // Open sidebar: show and animate in
       scraper.sidebar.style.display = "block";
       // Force reflow for transition
@@ -182,7 +189,9 @@ function createNotificationUI(notification, message) {
 
   // Create main text
   const textSpan = document.createElement("span");
-  textSpan.textContent = message || "Click on an element to select it, or press ESC/click ✕ to cancel";
+  textSpan.textContent =
+    message ||
+    "Click on an element to select it, or press ESC/click ✕ to cancel";
   notification.appendChild(textSpan);
 
   // Create a container for the icons
@@ -230,7 +239,8 @@ function createNotificationUI(notification, message) {
     cursor: help;
     font-size: 16px;
   `;
-  helpIcon.title = "Hover over elements to preview their selectors. Click to select the element and use its selector.";
+  helpIcon.title =
+    "Hover over elements to preview their selectors. Click to select the element and use its selector.";
 
   // Add icons to container
   iconsContainer.appendChild(helpIcon);
@@ -291,7 +301,10 @@ function removeSelectorNotification() {
  * @param {number} targetIndex - The index of the target selector in the schema
  */
 function activateElementSelector(targetIndex) {
-  console.log("Activating element selector mode for target index:", targetIndex);
+  console.log(
+    "Activating element selector mode for target index:",
+    targetIndex
+  );
 
   // First ensure we're not already in selector mode
   if (scraper.selectorMode) {
@@ -343,7 +356,8 @@ function deactivateElementSelector() {
   if (scraper.highlightedElement) {
     // Restore all original styling
     scraper.highlightedElement.style.border = scraper.originalBorder;
-    scraper.highlightedElement.style.backgroundColor = scraper.originalBackground;
+    scraper.highlightedElement.style.backgroundColor =
+      scraper.originalBackground;
     scraper.highlightedElement.style.outline = scraper.originalOutline;
 
     // Clear references
@@ -362,7 +376,11 @@ function handleElementMouseOver(event) {
   if (!scraper.selectorMode) return;
 
   // Prevent highlighting the sidebar or notification
-  if (event.target === scraper.sidebar || event.target.closest("#simple-scraper-sidebar") || event.target.closest("#selector-notification")) {
+  if (
+    event.target === scraper.sidebar ||
+    event.target.closest("#simple-scraper-sidebar") ||
+    event.target.closest("#selector-notification")
+  ) {
     return;
   }
 
@@ -436,7 +454,11 @@ function handleElementClick(event) {
   if (!scraper.selectorMode) return;
 
   // Prevent clicking on the sidebar or notification
-  if (event.target === scraper.sidebar || event.target.closest("#simple-scraper-sidebar") || event.target.closest("#selector-notification")) {
+  if (
+    event.target === scraper.sidebar ||
+    event.target.closest("#simple-scraper-sidebar") ||
+    event.target.closest("#selector-notification")
+  ) {
     return;
   }
 
@@ -496,10 +518,18 @@ function handleElementClick(event) {
  * @param {Event} event - The keydown event
  */
 function handleKeyDown(event) {
-  console.log("Key pressed:", event.key, "Selector mode:", scraper.selectorMode);
+  console.log(
+    "Key pressed:",
+    event.key,
+    "Selector mode:",
+    scraper.selectorMode
+  );
 
   // If Escape key is pressed, cancel selector mode
-  if ((event.key === "Escape" || event.keyCode === 27) && scraper.selectorMode) {
+  if (
+    (event.key === "Escape" || event.keyCode === 27) &&
+    scraper.selectorMode
+  ) {
     console.log("ESC key pressed, deactivating selector mode");
     // Prevent default and stop propagation before deactivating
     event.preventDefault();
@@ -563,7 +593,8 @@ function generateSelector(element) {
     for (const attr of Array.from(element.attributes)) {
       const name = attr.name;
       const value = attr.value;
-      if (!name || name === "id" || name === "class" || name === "style") continue;
+      if (!name || name === "id" || name === "class" || name === "style")
+        continue;
       if (value == null || String(value).length === 0) continue;
       selector += `[${name}='${escapeCssSelector(String(value))}']`;
     }
@@ -610,8 +641,12 @@ function generateSelector(element) {
     if (parent.id) {
       parentSelector = `#${escapeCssSelector(parent.id)}`;
     } else if (parent.className && typeof parent.className === "string") {
-      const parentClasses = parent.className.trim().split(/\s+/).filter(isValidCssClassName);
-      if (parentClasses.length > 0) parentSelector += "." + parentClasses.join(".");
+      const parentClasses = parent.className
+        .trim()
+        .split(/\s+/)
+        .filter(isValidCssClassName);
+      if (parentClasses.length > 0)
+        parentSelector += "." + parentClasses.join(".");
     }
     const combinedSelector = `${parentSelector} > ${selector}`;
     try {
@@ -632,11 +667,19 @@ function generateSelector(element) {
     currentElement = currentElement.parentElement;
     let parentTag = currentElement.tagName.toLowerCase();
     if (currentElement.id) {
-      fullPathSelector = `#${escapeCssSelector(currentElement.id)} > ${fullPathSelector}`;
+      fullPathSelector = `#${escapeCssSelector(
+        currentElement.id
+      )} > ${fullPathSelector}`;
       break;
     }
-    if (currentElement.className && typeof currentElement.className === "string") {
-      const parentClasses = currentElement.className.trim().split(/\s+/).filter(isValidCssClassName);
+    if (
+      currentElement.className &&
+      typeof currentElement.className === "string"
+    ) {
+      const parentClasses = currentElement.className
+        .trim()
+        .split(/\s+/)
+        .filter(isValidCssClassName);
       if (parentClasses.length > 0) parentTag += "." + parentClasses.join(".");
     }
     fullPathSelector = `${parentTag} > ${fullPathSelector}`;
@@ -672,8 +715,15 @@ function generateSelector(element) {
  * @param {Object} schema - The schema defining what to scrape
  */
 function startScraping(schema) {
-  // Decide single-page vs multi-page
-  const hasPagination = schema && (schema.maxPages > 1 || (schema.nextButtonSelector && schema.nextButtonSelector.trim() !== ""));
+  // Decide scrolling vs pagination vs single-page
+  if (schema && schema.enableScrolling) {
+    startScrapingWithScrolling(schema);
+    return;
+  }
+  const hasPagination =
+    schema &&
+    (schema.maxPages > 1 ||
+      (schema.nextButtonSelector && schema.nextButtonSelector.trim() !== ""));
   if (hasPagination) {
     startScrapingMultiPage(schema);
   } else {
@@ -681,11 +731,20 @@ function startScraping(schema) {
     try {
       const { results, diagnostics } = scrapeCurrentPageDetailed(schema);
       if (scraper.sidebar && scraper.sidebar.contentWindow) {
-        scraper.sidebar.contentWindow.postMessage({ action: "scrapingResults", results, diagnostics }, "*");
-        scraper.sidebar.contentWindow.postMessage({ action: "scrapingDone" }, "*");
+        scraper.sidebar.contentWindow.postMessage(
+          { action: "scrapingResults", results, diagnostics },
+          "*"
+        );
+        scraper.sidebar.contentWindow.postMessage(
+          { action: "scrapingDone" },
+          "*"
+        );
       }
     } catch (error) {
-      scraper.sidebar.contentWindow.postMessage({ action: "scrapingError", error: error.message }, "*");
+      scraper.sidebar.contentWindow.postMessage(
+        { action: "scrapingError", error: error.message },
+        "*"
+      );
     }
   }
 }
@@ -698,8 +757,14 @@ function scrapeCurrentPageDetailed(schema) {
   const cardSelector = (schema.cardSelector || "").trim();
 
   // Record presence of selectors
-  diagnostics.push(parentSelector ? "Parent selector provided." : "Parent selector not provided.");
-  diagnostics.push(cardSelector ? "Card selector provided." : "Card selector not provided.");
+  diagnostics.push(
+    parentSelector
+      ? "Parent selector provided."
+      : "Parent selector not provided."
+  );
+  diagnostics.push(
+    cardSelector ? "Card selector provided." : "Card selector not provided."
+  );
 
   let cards = [];
   if (parentSelector && cardSelector) {
@@ -725,7 +790,9 @@ function scrapeCurrentPageDetailed(schema) {
   }
 
   if (cards.length > 0) {
-    diagnostics.push("Using card-based scraping (iterate cards and query columns inside each card).");
+    diagnostics.push(
+      "Using card-based scraping (iterate cards and query columns inside each card)."
+    );
     cards.forEach((card) => {
       const rowData = {};
       columns.forEach((column) => {
@@ -736,7 +803,10 @@ function scrapeCurrentPageDetailed(schema) {
             value = extractValue(element, column);
           }
         } catch (error) {
-          console.error(`Error finding element for column ${column.name} in card:`, error);
+          console.error(
+            `Error finding element for column ${column.name} in card:`,
+            error
+          );
         }
         rowData[column.name] = value;
       });
@@ -745,7 +815,11 @@ function scrapeCurrentPageDetailed(schema) {
   } else {
     diagnostics.push("No cards found. Falling back to non-card scraping.");
     const hasMultiple = columns.some((col) => col.multiple_elements);
-    diagnostics.push(hasMultiple ? "Columns marked as multiple elements exist." : "No columns marked as multiple elements.");
+    diagnostics.push(
+      hasMultiple
+        ? "Columns marked as multiple elements exist."
+        : "No columns marked as multiple elements."
+    );
 
     if (hasMultiple) {
       // Find all possible elements for each column
@@ -757,9 +831,13 @@ function scrapeCurrentPageDetailed(schema) {
       });
 
       // Use the column with multiple_elements as the base for iteration
-      const baseColumn = elementsPerColumn.find((item) => item.column.multiple_elements);
+      const baseColumn = elementsPerColumn.find(
+        (item) => item.column.multiple_elements
+      );
       if (baseColumn) {
-        diagnostics.push(`Base column for iteration: ${baseColumn.column.name} (${baseColumn.elements.length} elements).`);
+        diagnostics.push(
+          `Base column for iteration: ${baseColumn.column.name} (${baseColumn.elements.length} elements).`
+        );
       }
 
       if (baseColumn && baseColumn.elements.length > 0) {
@@ -769,7 +847,10 @@ function scrapeCurrentPageDetailed(schema) {
           columns.forEach((column) => {
             let value = "";
 
-            if (column.multiple_elements && column.selector === baseColumn.column.selector) {
+            if (
+              column.multiple_elements &&
+              column.selector === baseColumn.column.selector
+            ) {
               // For the base column, use the current element
               value = extractValue(baseElement, column);
             } else if (column.multiple_elements) {
@@ -791,9 +872,13 @@ function scrapeCurrentPageDetailed(schema) {
 
           results.push(rowData);
         });
-        diagnostics.push(`Rows produced via multiple-elements fallback: ${results.length}.`);
+        diagnostics.push(
+          `Rows produced via multiple-elements fallback: ${results.length}.`
+        );
       } else {
-        diagnostics.push("No elements found for base multiple column. No rows produced.");
+        diagnostics.push(
+          "No elements found for base multiple column. No rows produced."
+        );
       }
     } else {
       // For schemas without multiple elements, just extract each column once
@@ -812,7 +897,9 @@ function scrapeCurrentPageDetailed(schema) {
         results.push(rowData);
         diagnostics.push("Single-row extraction produced 1 row.");
       } else {
-        diagnostics.push("No elements found for any column in single extraction.");
+        diagnostics.push(
+          "No elements found for any column in single extraction."
+        );
       }
     }
   }
@@ -837,7 +924,8 @@ async function startScrapingMultiPage(schema) {
       if (!scraper.scrapingActive) break;
 
       // Scrape current page
-      const { results: pageResults, diagnostics } = scrapeCurrentPageDetailed(schema);
+      const { results: pageResults, diagnostics } =
+        scrapeCurrentPageDetailed(schema);
       if (scraper.sidebar && scraper.sidebar.contentWindow) {
         scraper.sidebar.contentWindow.postMessage(
           {
@@ -875,12 +963,142 @@ async function startScrapingMultiPage(schema) {
     }
   } catch (error) {
     if (scraper.sidebar && scraper.sidebar.contentWindow) {
-      scraper.sidebar.contentWindow.postMessage({ action: "scrapingError", error: error.message }, "*");
+      scraper.sidebar.contentWindow.postMessage(
+        { action: "scrapingError", error: error.message },
+        "*"
+      );
     }
   } finally {
     scraper.scrapingActive = false;
     if (scraper.sidebar && scraper.sidebar.contentWindow) {
-      scraper.sidebar.contentWindow.postMessage({ action: "scrapingDone" }, "*");
+      scraper.sidebar.contentWindow.postMessage(
+        { action: "scrapingDone" },
+        "*"
+      );
+    }
+  }
+}
+
+// Scrolling-based scraping for infinite/dynamic lists
+async function startScrapingWithScrolling(schema) {
+  try {
+    scraper.scrapingActive = true;
+    const parentSelector = (schema.parentSelector || "").trim();
+    const cardSelector = (schema.cardSelector || "").trim();
+    const uniqueKeySelector = (schema.uniqueKeySelector || "").trim();
+    const scrollByPx = Math.max(
+      1,
+      parseInt(schema.scrollByPx || window.innerHeight || 800, 10)
+    );
+    const pauseMs = Math.max(0, parseInt(schema.scrollPauseMs || 300, 10));
+    const maxSteps = Math.max(1, parseInt(schema.maxScrollSteps || 50, 10));
+
+    const seen = new Set();
+
+    for (let step = 1; step <= maxSteps; step++) {
+      if (!scraper.scrapingActive) break;
+
+      const diagnostics = [];
+      const pageResults = [];
+      const columns = schema.columns || [];
+
+      let cards = [];
+      if (parentSelector && cardSelector) {
+        const parent = safeQuerySelector(parentSelector);
+        if (parent) {
+          try {
+            cards = Array.from(parent.querySelectorAll(cardSelector));
+          } catch (_) {}
+        }
+      } else if (cardSelector) {
+        try {
+          cards = safeQuerySelectorAll(cardSelector);
+        } catch (_) {}
+      }
+
+      diagnostics.push(
+        `Scrolling step ${step}/${maxSteps}. Visible cards: ${cards.length}.`
+      );
+
+      for (const card of cards) {
+        let key = "";
+        try {
+          if (uniqueKeySelector) {
+            const keyEl = card.querySelector(uniqueKeySelector);
+            if (keyEl) {
+              key = (
+                keyEl.getAttribute("href") ||
+                keyEl.getAttribute("src") ||
+                keyEl.textContent ||
+                ""
+              ).trim();
+            }
+          }
+          if (!key) {
+            key = (
+              card.getAttribute("data-id") ||
+              card.textContent ||
+              ""
+            ).trim();
+          }
+        } catch (_) {}
+
+        if (!key) continue; // if no key at all, skip to avoid unstable duplicates
+        if (seen.has(key)) continue;
+
+        const rowData = {};
+        columns.forEach((column) => {
+          let value = "";
+          try {
+            const element = card.querySelector(column.selector);
+            if (element) {
+              value = extractValue(element, column);
+            }
+          } catch (_) {}
+          rowData[column.name] = value;
+        });
+
+        seen.add(key);
+        pageResults.push(rowData);
+      }
+
+      if (
+        scraper.sidebar &&
+        scraper.sidebar.contentWindow &&
+        pageResults.length > 0
+      ) {
+        scraper.sidebar.contentWindow.postMessage(
+          {
+            action: "scrapingProgress",
+            results: pageResults,
+            diagnostics,
+            pageIndex: step,
+            totalPages: maxSteps,
+          },
+          "*"
+        );
+      }
+
+      // Scroll and wait for new content to load/mount
+      window.scrollBy(0, scrollByPx);
+      if (pauseMs > 0) {
+        await new Promise((res) => setTimeout(res, pauseMs));
+      }
+    }
+  } catch (error) {
+    if (scraper.sidebar && scraper.sidebar.contentWindow) {
+      scraper.sidebar.contentWindow.postMessage(
+        { action: "scrapingError", error: error.message },
+        "*"
+      );
+    }
+  } finally {
+    scraper.scrapingActive = false;
+    if (scraper.sidebar && scraper.sidebar.contentWindow) {
+      scraper.sidebar.contentWindow.postMessage(
+        { action: "scrapingDone" },
+        "*"
+      );
     }
   }
 }
@@ -1006,7 +1224,12 @@ function safeAddEventListener(element, eventType, callback, options = false) {
  * @param {Function} callback - The callback function
  * @param {boolean|Object} options - Event listener options
  */
-function safeRemoveEventListener(element, eventType, callback, options = false) {
+function safeRemoveEventListener(
+  element,
+  eventType,
+  callback,
+  options = false
+) {
   if (element && typeof element.removeEventListener === "function") {
     element.removeEventListener(eventType, callback, options);
   }

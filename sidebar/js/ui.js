@@ -276,6 +276,35 @@ export function setupEventListeners(handlers) {
     }
   });
 
+  // Toggle scrolling config visibility based on checkbox
+  const enableScrolling = document.getElementById("enable-scrolling");
+  const scrollingConfig = document.getElementById("scrolling-config");
+  if (enableScrolling && scrollingConfig) {
+    const scrollByPxInput = document.getElementById("scroll-by-px");
+    const scrollPauseMsInput = document.getElementById("scroll-pause-ms");
+    const maxScrollStepsInput = document.getElementById("max-scroll-steps");
+
+    const updateScrollingConfigState = () => {
+      const enabled = !!enableScrolling.checked;
+      if (enabled) {
+        scrollingConfig.classList.remove("hidden");
+        if (scrollByPxInput) scrollByPxInput.disabled = false;
+        if (scrollPauseMsInput) scrollPauseMsInput.disabled = false;
+        if (maxScrollStepsInput) maxScrollStepsInput.disabled = false;
+      } else {
+        scrollingConfig.classList.add("hidden");
+        if (scrollByPxInput) scrollByPxInput.disabled = true;
+        if (scrollPauseMsInput) scrollPauseMsInput.disabled = true;
+        if (maxScrollStepsInput) maxScrollStepsInput.disabled = true;
+      }
+    };
+
+    enableScrolling.addEventListener("change", updateScrollingConfigState);
+
+    // Initialize state on load
+    updateScrollingConfigState();
+  }
+
   // Schema form submission
   if (schemaForm) {
     schemaForm.addEventListener("submit", (e) => {
@@ -501,6 +530,10 @@ export function showSchemaForm(addColumnCallback) {
 
   // Show the modal with the form
   if (schemaFormModal) schemaFormModal.classList.remove('hidden');
+
+  // Ensure scrolling config is hidden on fresh form
+  const scrollingConfig = document.getElementById("scrolling-config");
+  if (scrollingConfig) scrollingConfig.classList.add("hidden");
 }
 
 /**
@@ -713,6 +746,19 @@ export function handleElementSelected(selector, targetIndex) {
     return;
   }
 
+  // Unique key selector
+  if (targetIndex === "unique-key-selector") {
+    const uniqueKeyInput = document.getElementById("unique-key-selector");
+    if (uniqueKeyInput) {
+      uniqueKeyInput.value = selector;
+      uniqueKeyInput.classList.add("selector-updated");
+      setTimeout(() => {
+        uniqueKeyInput.classList.remove("selector-updated");
+      }, 1000);
+    }
+    return;
+  }
+
   // Get the closest column form row and find the selector input within it
   const columnRow = button.closest(".column-form-row");
 
@@ -805,6 +851,11 @@ export function getSchemaFormData() {
     nextDelayMs: parseInt(document.getElementById("next-delay-ms")?.value, 10) || 0,
     maxPages: parseInt(document.getElementById("max-pages")?.value, 10) || 1,
     columns: getColumnsFromForm(),
+    enableScrolling: !!document.getElementById("enable-scrolling")?.checked,
+    scrollByPx: parseInt(document.getElementById("scroll-by-px")?.value, 10) || 0,
+    scrollPauseMs: parseInt(document.getElementById("scroll-pause-ms")?.value, 10) || 0,
+    maxScrollSteps: parseInt(document.getElementById("max-scroll-steps")?.value, 10) || 0,
+    uniqueKeySelector: document.getElementById("unique-key-selector")?.value.trim() || "",
   };
 
   return formData;
