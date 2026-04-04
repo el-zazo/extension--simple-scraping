@@ -711,10 +711,28 @@ function generateSelector(element) {
 }
 
 /**
+ * Clears the "scraped" attribute from all elements on the page
+ */
+function clearScrapedMarkers() {
+  try {
+    const markedElements = document.querySelectorAll('[scraped="true"]');
+    markedElements.forEach((el) => {
+      try {
+        el.removeAttribute("scraped");
+      } catch (_) {}
+    });
+  } catch (error) {
+    console.error("Error clearing scraped markers:", error);
+  }
+}
+
+/**
  * Starts scraping based on the provided schema
- * @param {Object} schema - The schema defining what to scrape
  */
 function startScraping(schema) {
+  // Clear any existing "scraped" markers before starting a new session
+  clearScrapedMarkers();
+
   // Decide scrolling vs pagination vs single-page
   if (schema && schema.enableScrolling) {
     startScrapingWithScrolling(schema);
