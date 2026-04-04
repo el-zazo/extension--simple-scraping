@@ -635,6 +635,10 @@ export function addColumnToForm(column = {}) {
     if (column.multiple_elements) {
       columnRow.querySelector(".column-multiple").checked = true;
     }
+    
+    if (column.many_values) {
+      columnRow.querySelector(".column-many-values").checked = true;
+    }
   }
 
   // Add event listener for column type change
@@ -809,6 +813,7 @@ export function getColumnsFromForm() {
     const use_regexp = row.querySelector(".column-use-regexp")?.checked || false;
     const regexp_pattern = row.querySelector(".column-regexp-pattern")?.value.trim() || "";
     const multiple_elements = row.querySelector(".column-multiple")?.checked || false;
+    const many_values = row.querySelector(".column-many-values")?.checked || false;
     columns.push({
       id: columnId,
       name,
@@ -819,6 +824,7 @@ export function getColumnsFromForm() {
       use_regexp,
       regexp_pattern,
       multiple_elements,
+      many_values,
     });
   });
   return columns;

@@ -719,7 +719,7 @@ function clearScrapedMarkers() {
     markedElements.forEach((el) => {
       try {
         el.removeAttribute("scraped");
-      } catch (_) {}
+      } catch (_) { }
     });
   } catch (error) {
     console.error("Error clearing scraped markers:", error);
@@ -800,7 +800,7 @@ function scrapeCurrentPageDetailed(schema) {
   } else if (cardSelector) {
     try {
       cards = safeQuerySelectorAll(cardSelector);
-    } catch (_) {}
+    } catch (_) { }
   }
 
   if (cardSelector) {
@@ -818,9 +818,16 @@ function scrapeCurrentPageDetailed(schema) {
       columns.forEach((column) => {
         let value = "";
         try {
-          const element = card.querySelector(column.selector);
-          if (element) {
-            value = extractValue(element, column);
+          if (column.many_values) {
+            const elements = Array.from(card.querySelectorAll(column.selector));
+            value = elements
+              .map((el) => extractValue(el, column))
+              .filter((v) => v !== null && v !== undefined && v !== "");
+          } else {
+            const element = card.querySelector(column.selector);
+            if (element) {
+              value = extractValue(element, column);
+            }
           }
         } catch (error) {
           console.error(
@@ -831,7 +838,7 @@ function scrapeCurrentPageDetailed(schema) {
         rowData[column.name] = value;
       });
       results.push(rowData);
-      try { card.setAttribute("scraped", "true"); } catch (_) {}
+      try { card.setAttribute("scraped", "true"); } catch (_) { }
     });
   } else {
     diagnostics.push("No cards found. Falling back to non-card scraping.");
@@ -1035,12 +1042,12 @@ async function startScrapingWithScrolling(schema) {
         if (parent) {
           try {
             cards = Array.from(parent.querySelectorAll(cardSelector));
-          } catch (_) {}
+          } catch (_) { }
         }
       } else if (cardSelector) {
         try {
           cards = safeQuerySelectorAll(cardSelector);
-        } catch (_) {}
+        } catch (_) { }
       }
 
       // Exclude cards already marked as scraped in prior runs/steps
@@ -1055,17 +1062,24 @@ async function startScrapingWithScrolling(schema) {
         columns.forEach((column) => {
           let value = "";
           try {
-            const element = card.querySelector(column.selector);
-            if (element) {
-              value = extractValue(element, column);
+            if (column.many_values) {
+              const elements = Array.from(card.querySelectorAll(column.selector));
+              value = elements
+                .map((el) => extractValue(el, column))
+                .filter((v) => v !== null && v !== undefined && v !== "");
+            } else {
+              const element = card.querySelector(column.selector);
+              if (element) {
+                value = extractValue(element, column);
+              }
             }
-          } catch (_) {}
+          } catch (_) { }
           rowData[column.name] = value;
         });
         pageResults.push(rowData);
 
         // Mark card as scraped so it won't be reprocessed on next steps/runs
-        try { card.setAttribute("scraped", "true"); } catch (_) {}
+        try { card.setAttribute("scraped", "true"); } catch (_) { }
       }
 
       if (

@@ -151,7 +151,13 @@ export function renderResultsTable() {
 
     columns.forEach((column) => {
       const td = document.createElement("td");
-      td.textContent = result[column] || "";
+      const val = result[column];
+      if (Array.isArray(val)) {
+        td.style.whiteSpace = "pre-wrap";
+        td.textContent = val.map(v => `- ${v}`).join("\n");
+      } else {
+        td.textContent = val || "";
+      }
       row.appendChild(td);
     });
 
@@ -271,9 +277,14 @@ export function exportResults() {
   items.forEach((result) => {
     const row = columns.map((column) => {
       // Escape quotes and wrap in quotes if contains comma
-      const value = result[column] || "";
-      const escaped = value.replace(/"/g, '""');
-      return escaped.includes(",") ? `"${escaped}"` : escaped;
+      let value = result[column];
+      if (Array.isArray(value)) {
+        value = value.map(v => `- ${v}`).join("\n");
+      } else {
+        value = value || "";
+      }
+      const escaped = String(value).replace(/"/g, '""');
+      return escaped.includes(",") || escaped.includes("\n") ? `"${escaped}"` : escaped;
     });
     csv += row.join(",") + "\n";
   });
