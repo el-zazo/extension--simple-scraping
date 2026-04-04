@@ -59,7 +59,7 @@ export function initPagesDropdown() {
   try {
     renderPagesSelect();
     attachFiltersHandlers();
-  } catch (_) {}
+  } catch (_) { }
 }
 
 /**
@@ -279,12 +279,12 @@ export function exportResults() {
       // Escape quotes and wrap in quotes if contains comma
       let value = result[column];
       if (Array.isArray(value)) {
-        value = value.map(v => `- ${v}`).join("\n");
+        value = value.join("; ");
       } else {
         value = value || "";
       }
       const escaped = String(value).replace(/"/g, '""');
-      return escaped.includes(",") || escaped.includes("\n") ? `"${escaped}"` : escaped;
+      return escaped.includes(";") || escaped.includes(",") || escaped.includes("\n") ? `"${escaped}"` : escaped;
     });
     csv += row.join(",") + "\n";
   });
