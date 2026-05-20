@@ -63,6 +63,13 @@ document.addEventListener(
 // Initialize the content script when loaded
 initialize();
 
+// Notify the background script that the content script is ready
+try {
+  chrome.runtime.sendMessage({ action: "contentScriptReady" });
+} catch (_) {
+  // Context may be invalidated; safe to ignore
+}
+
 /**
  * Handles messages from the sidebar
  * @param {MessageEvent} event - The message event
@@ -776,10 +783,12 @@ function startScraping(schema) {
         );
       }
     } catch (error) {
-      scraper.sidebar.contentWindow.postMessage(
-        { action: "scrapingError", error: error.message },
-        "*"
-      );
+      if (scraper.sidebar && scraper.sidebar.contentWindow) {
+        scraper.sidebar.contentWindow.postMessage(
+          { action: "scrapingError", error: error.message },
+          "*"
+        );
+      }
     }
   }
 }
