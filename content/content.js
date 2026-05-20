@@ -396,7 +396,14 @@ function handleElementMouseOver(event) {
   // Show selector preview in notification
   const notification = document.getElementById("selector-notification");
   if (notification) {
-    notification.innerHTML = `Click to select: <code style=\"word-break:break-all;white-space:pre-wrap;overflow-wrap:break-word;display:inline;\"> ${previewSelector}</code>`;
+    notification.textContent = '';
+    const label = document.createElement('span');
+    label.textContent = 'Click to select: ';
+    const code = document.createElement('code');
+    code.style.cssText = 'word-break:break-all;white-space:pre-wrap;overflow-wrap:break-word;display:inline;';
+    code.textContent = previewSelector;
+    notification.appendChild(label);
+    notification.appendChild(code);
     notification.style.maxWidth = "80%";
     notification.style.overflow = "visible";
     notification.style.textOverflow = "clip";
@@ -471,7 +478,17 @@ function handleElementClick(event) {
   // Show a brief success notification before deactivating
   const notification = document.getElementById("selector-notification");
   if (notification) {
-    notification.innerHTML = `<span style="color: #8efa8e;">✓</span> Selected: <code>${selector}</code>`;
+    notification.textContent = '';
+    const check = document.createElement('span');
+    check.style.color = '#8efa8e';
+    check.textContent = '✓';
+    const selLabel = document.createElement('span');
+    selLabel.textContent = ' Selected: ';
+    const selCode = document.createElement('code');
+    selCode.textContent = selector;
+    notification.appendChild(check);
+    notification.appendChild(selLabel);
+    notification.appendChild(selCode);
     notification.style.backgroundColor = "#2c7d32";
 
     // Flash effect to indicate success

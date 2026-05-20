@@ -284,7 +284,7 @@ export function exportResults() {
         value = value || "";
       }
       const escaped = String(value).replace(/"/g, '""');
-      return escaped.includes(";") || escaped.includes(",") || escaped.includes("\n") ? `"${escaped}"` : escaped;
+      return escaped.includes(";") || escaped.includes(",") || escaped.includes("\n") || escaped.includes('"') ? `"${escaped}"` : escaped;
     });
     csv += row.join(",") + "\n";
   });
