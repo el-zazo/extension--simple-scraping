@@ -276,8 +276,11 @@ export function exportResults() {
   // Get column names from first result
   const columns = Object.keys(items[0]);
 
-  // Create CSV header row
-  let csv = columns.join(",") + "\n";
+  // Create CSV header row (apply same quoting logic as data rows)
+  let csv = columns.map((col) => {
+    const escaped = String(col).replace(/"/g, '""');
+    return escaped.includes(";") || escaped.includes(",") || escaped.includes("\n") || escaped.includes('"') ? `"${escaped}"` : escaped;
+  }).join(",") + "\n";
 
   // Add data rows
   items.forEach((result) => {

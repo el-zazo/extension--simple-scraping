@@ -1217,7 +1217,7 @@ function extractValue(element, column) {
       const match = extractedValue.match(regex);
       // If there's a match and it has captured groups (parentheses in the regex), return the first captured group
       // Otherwise return the whole match or the original value if no match
-      return match ? (match[1] ? match[1] : match[0]) : extractedValue;
+      return match ? (match[1] !== undefined ? match[1] : match[0]) : extractedValue;
     } catch (error) {
       console.error("RegExp extraction error:", error);
       return extractedValue;
@@ -1286,5 +1286,4 @@ function safeRemoveEventListener(
   }
 }
 
-// Initialize the content script when the page is loaded
-document.addEventListener("DOMContentLoaded", initialize);
+// (DOMContentLoaded listener removed — initialize() is already called above on line 64)
