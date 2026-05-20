@@ -582,11 +582,16 @@ function isValidCssClassName(className) {
  */
 function escapeCssSelector(str) {
   // Escape special characters in CSS selectors
-  // Based on CSS.escape polyfill
   if (!str) return str;
 
-  // Replace any character that's not alphanumeric, underscore, or hyphen
-  return str.replace(/[^\w\-]/g, "\\$&");
+  // Use native CSS.escape if available (handles all edge cases correctly)
+  if (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') {
+    return CSS.escape(str);
+  }
+
+  // Fallback: escape for use inside single-quoted CSS attribute values
+  // In single-quoted strings, only backslash and single-quote need escaping
+  return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
 /**
@@ -617,7 +622,7 @@ function generateSelector(element) {
     for (const attr of Array.from(element.attributes)) {
       const name = attr.name;
       const value = attr.value;
-      if (!name || name === "id" || name === "class" || name === "style")
+      if (!name || name === "id" || name === "class" || name === "style" || name === "scraped")
         continue;
       if (value == null || String(value).length === 0) continue;
       selector += `[${name}='${escapeCssSelector(String(value))}']`;

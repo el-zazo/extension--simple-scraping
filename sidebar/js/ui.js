@@ -402,8 +402,18 @@ export function setupEventListeners(handlers) {
   }
 
   // Listen for messages from content script
+  // Only accept messages from the parent window (the page hosting our sidebar iframe)
+  // or from the same extension origin
+  const extensionOrigin = chrome.runtime.getURL("").slice(0, -1);
+
   window.addEventListener("message", (event) => {
+    // Validate origin: accept from parent window or from the extension itself
+    if (event.source !== window.parent && event.origin !== extensionOrigin && event.origin !== "null") {
+      return;
+    }
+
     const message = event.data;
+    if (!message || typeof message !== "object" || !message.action) return;
 
     if (message.action === "scrapingResults") {
       handlers.handleScrapingResults(message.results, message.diagnostics || []);
@@ -635,7 +645,7 @@ export function addColumnToForm(column = {}) {
     if (column.multiple_elements) {
       columnRow.querySelector(".column-multiple").checked = true;
     }
-    
+
     if (column.many_values) {
       columnRow.querySelector(".column-many-values").checked = true;
     }

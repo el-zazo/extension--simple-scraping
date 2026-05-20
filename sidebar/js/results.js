@@ -6,6 +6,7 @@ import * as ui from "./ui.js";
 let pages = []; // [{ index: 1, items: [...], diagnostics: [...] }]
 let totalPagesPlanned = 1;
 let resultsModalListenersAttached = false;
+let filtersHandlersAttached = false;
 
 /**
  * Set scraping results
@@ -232,6 +233,9 @@ export function addPageResults(items, pageIndex, totalPages, diagnostics = []) {
 }
 
 export function attachFiltersHandlers() {
+  // Guard: only attach listeners once to prevent duplicates
+  if (filtersHandlersAttached) return;
+
   const selectAllBtn = document.getElementById("select-all-pages");
   const pagesOptions = document.getElementById("pages-options");
   // Checkbox change re-renders
@@ -253,6 +257,8 @@ export function attachFiltersHandlers() {
       updateSelectAllButtonLabel();
     });
   }
+
+  filtersHandlersAttached = true;
 }
 
 /**
